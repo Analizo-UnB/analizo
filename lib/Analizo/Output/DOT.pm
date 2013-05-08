@@ -115,7 +115,7 @@ sub _function_to_module {
 }
 
 sub _file_to_module {
-  my $filename = shift;
+  my ($filename) = @_;
   $filename =~ s/\.r\d+\.expand$//;
   return basename($filename);
 }

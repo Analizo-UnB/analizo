@@ -29,7 +29,7 @@ sub on_dir {
 }
 
 sub mock {
-  my $object = shift;
+  my ($object) = @_;
   new Test::MockObject::Extends($object);
 }
 

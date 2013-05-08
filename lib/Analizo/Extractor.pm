@@ -19,7 +19,7 @@ sub new {
 }
 
 sub alias {
-  my $alias = shift;
+  my ($alias) = @_;
   my %aliases = (
     doxy => 'Doxyparse',
     excluding_dirs => 0,

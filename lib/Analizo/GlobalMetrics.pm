@@ -29,7 +29,7 @@ sub new {
 }
 
 sub _initialize_calculators {
-  my $model = shift;
+  my ($model) = @_;
   my %calculators = (
     total_abstract_classes            => new Analizo::GlobalMetric::TotalAbstractClasses(model => $model),
     total_methods_per_abstract_class  => new Analizo::GlobalMetric::MethodsPerAbstractClass(model => $model),
@@ -170,7 +170,7 @@ sub coupling_factor {
 }
 
 sub _number_of_combinations {
-  my $total_modules = shift;
+  my ($total_modules) = @_;
   return $total_modules * ($total_modules - 1);
 }
 
