@@ -61,7 +61,7 @@ sub unpack_sample_git_repository {
 }
 
 sub readfile {
-  my $filename = shift;
+  my ($filename) = @_;
   open INPUT, $filename;
   my @lines = <INPUT>;
   close INPUT;

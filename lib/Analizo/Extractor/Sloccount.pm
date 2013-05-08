@@ -23,7 +23,7 @@ sub feed {
 }
 
 sub _strip_commas {
-  my $number = shift;
+  my ($number) = @_;
   $number =~ s/,//g;
   return $number;
 }
