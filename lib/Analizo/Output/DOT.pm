@@ -33,7 +33,7 @@ sub _add_dependency {
 }
 
 sub string {
-  my $self = shift;
+  my ($self) = @_;
   my $result = "digraph callgraph {\n";
 
   if ($self->cluster) {
@@ -94,7 +94,7 @@ sub _include_callee {
 }
 
 sub _calculate_clusters {
-  my $self = shift;
+  my ($self) = @_;
   my $result = "";
   foreach my $module (sort(keys(%{$self->model->modules}))) {
     $result .= "subgraph \"cluster_$module\" {\n";

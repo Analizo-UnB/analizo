@@ -51,7 +51,7 @@ sub load {
 }
 
 sub model {
-  my $self = shift;
+  my ($self) = @_;
   if (!exists($self->{model})) {
     $self->{model} = new Analizo::Model;
   }
