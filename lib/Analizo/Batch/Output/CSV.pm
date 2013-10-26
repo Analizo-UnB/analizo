@@ -3,6 +3,8 @@ package Analizo::Batch::Output::CSV;
 use base qw( Analizo::Batch::Output );
 use Analizo::Metrics;
 
+BEGIN {*_push = \&CORE::push;}
+
 sub push {
   my ($self, $job) = @_;
   $self->{jobs} ||= [];
@@ -78,19 +80,19 @@ sub _write_details {
   print $csv_handler "\n";
 
   foreach (@$details){
-    if($_->{_filename}[1] eq ""){
+    if(!( $_->{_filename}[1])){
       $file_name = $_->{_filename}[0];
     }else{
       $file_name = $_->{_filename}[0]."\/".$_->{_filename}[1];
     }
 
-    push @array_of_values, $file_name.",".$_->{_module};
+    _push @array_of_values, $file_name.",".$_->{_module};
 
     foreach $field (@fields){
-      push @array_of_values, ",".$_->{$field};
+      _push @array_of_values, ",".$_->{$field};
     }
 
-    push @array_of_values, "\n";
+    _push @array_of_values, "\n";
   }
 
   print $csv_handler @array_of_values;
