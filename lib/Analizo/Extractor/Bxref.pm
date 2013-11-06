@@ -7,6 +7,7 @@ use base qw(Analizo::Extractor);
 
 use File::Temp qw/ tempfile /;
 use Cwd;
+use Data::Dumper qw(Dumper);
 
 sub new {
   my $package = shift;
@@ -40,6 +41,19 @@ sub feed {
  		$self->current_file($file);
  		$self->_add_file($file);
 	}
+
+	#current module declaration
+	if($line =~ m/^\s*Subroutine (\w*)::/ ){
+                 my $modules = Dumper \$self->model->declare_module;
+                 if ($modules =~ m/$1/) {
+			break;
+                 } else {
+			$self->current_module($1);
+			$self->_perl_hack($1);
+            	}    
+        } 
+
+	
 }
 
 sub _strip_current_directory {
