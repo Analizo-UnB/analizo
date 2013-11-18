@@ -1,4 +1,4 @@
-package Tree;
+package Analizo::Extractor::Bxref::Tree;
 
 use strict;
 use warnings;
