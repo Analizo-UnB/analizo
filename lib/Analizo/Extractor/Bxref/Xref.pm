@@ -1,4 +1,4 @@
-#! /us/bin/perl
+#! /usr/bin/perl
 
 package Analizo::Extractor::Bxref::Xref;
 
@@ -76,13 +76,14 @@ sub actually_process {
 	my ($self, @files) = @_;
 	my $tree;
 
-	my $xref_tree = new Analizo::Extractor::Bxref::Tree;
-
+#	my $xref_tree = new Analizo::Extractor::Bxref::Tree;
+	my $xref_tree;
 	foreach my $input_file (@files) {
 		open ANALISES, "perl -MO=Xref,-r $input_file 2> /dev/null | " or die $!;
 
-		while (<ANALISES>) 
+		while (<ANALISES>) { 
 			$tree = $xref_tree->building_tree($_, @files);
+    }
 
 		close ANALISES;
 	}
