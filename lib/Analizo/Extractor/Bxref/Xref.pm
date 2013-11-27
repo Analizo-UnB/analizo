@@ -56,6 +56,19 @@ sub _variable_declarations {
 	}
 }
 
+sub _function_calls {
+	my ($self, $method_name, $methods) = @_;
+
+	foreach (keys %$methods) {
+		my $called_function = $methods->{$_};
+		if(/called_methods/) {
+			foreach (keys %$called_function) {
+				$self->model->add_call($method_name, $_, 'direct');
+			}
+		}
+	}
+}
+
 sub _add_file {
 	my ($self, $file) = @_;
 	push (@{$self->{files}}, $file);
@@ -90,13 +103,10 @@ sub feed {
 				$self->model->declare_function($self->current_module, $function);
 				$self->{current_member} = $function;
 
-				#			$self->_function_declaration($_);
-
-				my $methods = $modules->{$_} ;
-
-				foreach (keys %$methods){
-							$self->_variable_declarations($methods);
-				}
+				my $methods = $modules->{$_};
+					
+				$self->_variable_declarations($methods);
+				$self->_function_calls($_, $methods);
 			}
 		}
 	}

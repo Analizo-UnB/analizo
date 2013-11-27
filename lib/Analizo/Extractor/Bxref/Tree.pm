@@ -67,14 +67,12 @@ sub building_tree {
 
 	#FIX FILE NAMES
 
-	#								$1			$2			$3		 $4			$5						$6				$7			$8
-	#								file    module  method line   package -----type---    name    ---used----  
+	#				$1		$2				$3		$4			$5			$6		$7
+	#				file    module::method line   package -----type---    name    ---used----  
 	if ($lines =~ /^(\S+)\s+(\S+)\s+(\d+)\s(\S+)\s+([@*&\$%?>-]+)\s(\S+)\s+([a-zA-Z]+)$/) {
 		$file = $1;
-		#$module = $2;
-		#$element_method = $2;
 		$full_name = $2;
-    $element_line = $3;
+    	$element_line = $3;
 		$element_package = $4;
 		$element_type = $5;
 		$element_name = $6;

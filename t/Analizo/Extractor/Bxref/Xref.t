@@ -105,23 +105,22 @@ sub detect_variable_in_the_model : Tests {
 	$tree = $xref_tree->building_tree('Person.pm        Employee::new    52 (lexical)       $ self             intro', 'Person.pm');
 	$extractor->feed($tree);
 
-  is($extractor->model->{modules}->{'Employee'}->{variables}[0], "Employee::self", 'must set the current variables in the model');
+  	is($extractor->model->{modules}->{'Employee'}->{variables}[0], "Employee::self", 'must set the current variables in the model');
 }
 
 sub verify_module_by_file : Tests {
 	my $extractor = new_xref_extractor();
 	my $xref_tree = new Analizo::Extractor::Bxref::Tree;
 	my $tree;
-	my $other_tree;
 
 	$tree = $xref_tree->building_tree('Person.pm        Employee::new    52 (lexical)       $ self             intro', 'Person.pm');
 	$tree = $xref_tree->building_tree('Person.pm        Person::new    52 (lexical)       $ self             intro', 'Person.pm');
 
 	$extractor->feed($tree);
-
+	
 	my @modules = @{$extractor->model->{module_by_file}->{'Person.pm'}};
 
-  is(grep (/Employee/, @modules), 1, 'must get module name in the model');
+  	is(grep (/Employee/, @modules), 1, 'must get module name in the model');
 	is(grep (/Person/, @modules), 1, 'must get module name in the model');
 }
 
@@ -130,12 +129,11 @@ sub verify_function_call : Tests {
 	my $xref_tree = new Analizo::Extractor::Bxref::Tree;
 	my $tree;
 
-	$tree = $xref_tree->building_tree('Person.pm        Employee::new    52 (lexical)      %%$ self           intro', 'Person.pm');
-	$tree = $xref_tree->building_tree('Person.pm        Person::speak    52 (lexical)      %%$ self            subused', 'Person.pm');
+	$tree = $xref_tree->building_tree('Person.pm        Employee::print_employee    82 Employee      & print_person           subused', 'Person.pm');
 
 	$extractor->feed($tree);	
 
-	#is($extractor->model->{calls}->{'Person::speak'}->{'Employee::new'}, 'direct', 'must verify function call'.Dumper($tree));
+	is($extractor->model->{calls}->{'print_employee'}->{'print_person'}, 'direct', 'must verify function call');
 }
 
 __PACKAGE__->runtests;
