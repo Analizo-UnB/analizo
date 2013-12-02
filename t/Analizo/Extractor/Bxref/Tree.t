@@ -30,7 +30,7 @@ sub number_of_global_variables : Tests {
 	
 	$tree = $tree->building_tree('Person.pm        (main)           3 (lexical)       $ abc          intro',@files);	
 
-	$num_global_variables = $tree->{"Person.pm"}->{"(main)"}->{"global_variables"};
+	$num_global_variables = $tree->{'Person.pm'}->{'(main)'}->{'global_variables'};
 	is($num_global_variables, 1, 'Number of global variables must be 1');		
 }
 
@@ -43,7 +43,7 @@ sub file_name : Tests {
 		$file = $_;
 	}	
 	
-	is($file,"Person.pm", 'Name of file must be Person.pm');
+	is($file,'Person.pm', 'Name of file must be Person.pm');
 	
 }
 
@@ -117,6 +117,37 @@ sub local_variable_names : Tests {
 	}
 	
 	is($variable,'firstName', 'Name of variable must be firstName');	
+}
+
+sub method_parent : Tests {
+	my $methods;
+	my $method_parent;
+	
+	$tree = $tree->building_tree('Person.pm        (definitions)    78 Employee        & getLastName      subdef',@files);	
+	
+	$methods = $tree->{'Person.pm'}->{'(definitions)'}->{'getLastName'};
+	
+	foreach (%$methods){
+		$method_parent = $_;
+	}
+	
+	is($method_parent,'Person.pm', 'Name of method parent of getLastName must be Person.pm');
+	
+}
+
+sub called_method : Tests {
+	my $method;
+	my $called_method;
+	
+	$tree = $tree->building_tree('Person.pm Employee::print_employee  85 Employee    & print_person   subused',@files);	
+	
+	$method = $tree->{'Person.pm'}->{'Employee'}->{'print_employee'}->{'called_methods'};
+	
+	foreach (keys %$method){
+		$called_method = $_;
+	}
+	
+	is($called_method,'print_person','Name of called method must be print_person');
 }
 
 __PACKAGE__->runtests;
