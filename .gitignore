@@ -1,5 +1,9 @@
-.bundle
-tags
-Makefile
+/.bundle
+/tags
+/Makefile
 *~
 *.swp
+/site/*.html
+/site/man.mk
+/site/man/
+/site/pod2htmd.tmp
