@@ -128,6 +128,7 @@ sub _strip_current_directory {
 sub actually_process {
   my ($self, @input_files) = @_;
   my ($temp_handle, $temp_filename) = tempfile();
+
   foreach my $input_file (@input_files) {
     print $temp_handle "$input_file\n"
   }

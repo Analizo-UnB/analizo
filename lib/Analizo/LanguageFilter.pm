@@ -10,6 +10,7 @@ our $FILTERS = {
   c         => 'c|h',
   cpp       => 'cpp|cxx|cc|h|hpp',
   java      => 'java',
+	perl			=> 'pm|pl',
 };
 $FILTERS->{all} = join('|', values(%$FILTERS));
 
