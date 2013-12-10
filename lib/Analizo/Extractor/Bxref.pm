@@ -2,14 +2,14 @@ package Analizo::Extractor::Bxref;
 
 use strict;
 use warnings;
-
 use base qw(Analizo::Extractor);
-use Data::Dumper;
+use File::Temp qw/ tempfile /;
+use Data::Dumper;   
 use Cwd;
 
 sub new {
- 	my ($package) = shift;
- 	return bless { files => [], @_ }, $package;
+ 	my ($package,@options) = @_;
+ 	return bless { files => [], @options }, $package;
 }
 
 sub _file_to_module {
@@ -39,11 +39,12 @@ sub _function_declarations {
 		$self->model->declare_function($self->current_module, $function);
 		$self->{current_member} = $function;
 	}
+
 }
 
 sub _variable_declarations {
 	my ($self, $methods) = @_;
-
+	
 	foreach (keys %$methods) {
 		my $local_variables = $methods->{$_};
 
@@ -101,6 +102,7 @@ sub _strip_current_directory {
 sub feed {
 	my ($self, $tree) = @_;
 
+
 	foreach (keys %$tree) {
 
 		my $file = $self->_strip_current_directory($_);
@@ -112,43 +114,44 @@ sub feed {
 		foreach (keys %$files) {
 			$self->current_module($_);
 			my $modules = $files->{$_};
+			
 
 			foreach (keys %$modules) {
+				next if($_ =~ /global_variables/);
+				
 				my $function = $self->_qualified_name($self->current_module, $_);
 				$self->model->declare_function($self->current_module, $function);
 				$self->{current_member} = $function;
 
 				my $methods = $modules->{$_};
-					
 				$self->_variable_declarations($methods);
 				$self->_function_calls($_, $methods);
 				$self->_variable_calls($_,$methods);
+		
+
 			}
 		}
 	}
 }
 
 sub actually_process {
-	my ($self, @files) = @_;
-	my $tree;
-
 	use Analizo::Extractor::B::Tree;
 
-	my $xref_tree = new Analizo::Extractor::B::Tree();
+	my ($self, @files) = @_;
+	my $tree = new Analizo::Extractor::B::Tree();
 
 	foreach my $input_file (@files) {
-		open ANALISES, "perl -MO=Xref,-r $input_file 2> /dev/null | " or die $!;
-
-		while (<ANALISES>) { 
-			$tree = $xref_tree->building_tree($_, @files);
-		}
-
-		close ANALISES;
+			open ANALISES, "perl -MO=Xref,-r $input_file 2> /dev/null | " or die $!;
+	
+			while (<ANALISES>) {
+				$tree = $tree->building_tree($_, @files);
+			}
+		
 	}
+	close ANALISES;
+
 
 	$self->feed($tree);
-
-	print Dumper ($self);
 
 	if ($@) {
 		warn($@);
