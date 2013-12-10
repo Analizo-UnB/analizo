@@ -1,10 +1,11 @@
 package Analizo::Extractor::Bxref;
 
+use base qw(Analizo::Extractor);
+
 use strict;
 use warnings;
-use base qw(Analizo::Extractor);
+
 use File::Temp qw/ tempfile /;
-use Data::Dumper;   
 use Cwd;
 
 sub new {
