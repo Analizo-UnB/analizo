@@ -65,14 +65,12 @@ sub building_tree {
 
 	chomp $lines;
 
-	#FIX FILE NAMES
-
 	#				$1		$2				$3		$4			$5			$6		$7
 	#				file    module::method line   package -----type---    name    ---used----  
 	if ($lines =~ /^(\S+)\s+(\S+)\s+(\d+)\s(\S+)\s+([@*&\$%?>-]+)\s(\S+)\s+([a-zA-Z]+)$/) {
 		$file = $1;
 		$full_name = $2;
-    	$element_line = $3;
+   	$element_line = $3;
 		$element_package = $4;
 		$element_type = $5;
 		$element_name = $6;
@@ -84,20 +82,18 @@ sub building_tree {
     } else{
         $module = $full_name;
         $element_method = "(global)";
-      }
-
-		#FIX FILE NAMES
-    if ($module =~ /\(/){
-		  $self->{$file}->{$module}->{"global_variables"} = 0 if (!defined ($self->{$file}->{$module}) && grep {$_ eq $file} @files);
+     }
+    
+		if (!  $module =~ /\(/){
+		  $self->{$file}->{"global_variables"} = 0 if (!defined ($self->{$file}->{$module}) && grep {$_ eq $file} @files);
     }
 
 		if (grep {$_ eq $file} @files) {
 
 			if ($element_usage =~ /^intro$/) {
 				push @{$self->{$file}->{$module}->{$element_method}->{"local_variable_names"}}, $element_name;
-
 				if ($module =~ /\(/){ 
-					$self->{$file}->{$module}->{"global_variables"} ++;
+					$self->{$file}->{"global_variables"} ++;
 				}
 			} else {
 				if ($element_line != 0 && $element_usage =~ /^used$/) {
@@ -111,6 +107,7 @@ sub building_tree {
 				if ($element_usage =~ /^subdef$/ && $element_line != 0) {
 					my @another_method_full_name = split "::", $element_name;
 					$element_name = $another_method_full_name[$#another_method_full_name];
+					$module = $element_package;
 					$self->{$file}->{$module}->{$element_name}->{"method_parent"} = $file;
 				}
 			}
