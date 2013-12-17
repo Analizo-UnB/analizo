@@ -34,12 +34,10 @@ sub _qualified_name {
 
 sub _function_declarations {
 	my ($self, $function) = @_;
-
-	if (!($function =~ /global_variables/)) {
-		my $function = $self->_qualified_name($self->current_module, $_);
-		$self->model->declare_function($self->current_module, $function);
-		$self->{current_member} = $function;
-	}
+		
+	$function = $self->_qualified_name($self->current_module, $function);
+	$self->model->declare_function($self->current_module, $function);
+	$self->{current_member} = $function;
 
 }
 
@@ -117,18 +115,16 @@ sub feed {
 			my $modules = $files->{$_};
 			
 
-			foreach (keys %$modules) {
-				next if($_ =~ /global_variables/);
-				
-				my $function = $self->_qualified_name($self->current_module, $_);
-				$self->model->declare_function($self->current_module, $function);
-				$self->{current_member} = $function;
+			next if($_ =~ /global_variables/);
 
+			foreach (keys %$modules) {
+
+				$self->_function_declarations($_);
+				
 				my $methods = $modules->{$_};
 				$self->_variable_declarations($methods);
 				$self->_function_calls($_, $methods);
-				$self->_variable_calls($_,$methods);
-		
+				$self->_variable_calls($_,$methods);	
 
 			}
 		}
@@ -151,7 +147,7 @@ sub actually_process {
 	}
 	close ANALISES;
 
-
+	
 	$self->feed($tree);
 
 	if ($@) {

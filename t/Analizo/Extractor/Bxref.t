@@ -86,11 +86,11 @@ sub detect_module_in_the_model : Tests {
 sub detect_function_in_the_model : Tests {
 	my $extractor = new_Bxref_extractor();
 	my $tree = new Analizo::Extractor::B::Tree;
-
-	$tree = $tree->building_tree('Person.pm        Employee::new    52 (lexical)       $ self             intro', 'Person.pm');
+ 
+	$tree = $tree->building_tree('Person.pm        (definitions)    52 Employee       & new             subdef', 'Person.pm');
 	$extractor->feed($tree);
-
-  is($extractor->model->{modules}->{'Employee'}->{functions}[0], "Employee::new", 'must set the current function in the model');
+  
+	is($extractor->model->{modules}->{'Employee'}->{functions}[0], "Employee::new", 'must set the current function in the model');
   is($extractor->current_member, 'Employee::new', 'must set the current function');
 }
 
