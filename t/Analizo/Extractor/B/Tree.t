@@ -25,15 +25,6 @@ sub contructor : Tests {
 	isa_ok($tree,'Analizo::Extractor::B::Tree');
 }
 
-sub number_of_global_variables : Tests {
-	my $num_global_variables;
-	
-	$tree = $tree->building_tree('Person.pm        (main)           3 (lexical)       $ abc          intro',@files);	
-
-	$num_global_variables = $tree->{"Person.pm"}->{"(main)"}->{"global_variables"};
-	is($num_global_variables, 1, 'Number of global variables must be 1');		
-}
-
 sub file_name : Tests {
 	my $file;	
 
