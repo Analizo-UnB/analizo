@@ -13,15 +13,24 @@ sub filter_html_report {
   my ($self, $report_path) = @_;
   my $raw_report;
   my %metrics;
-  open($raw_report, "<", $report_path) or die $!;
+  open($raw_report, "<", $report_path) or return %metrics;
 
   while(<$raw_report>) {
-    if($_ =~ m/<tr><td class="SUMM_DESC">([A-Za-z\s\.]+)<\/td><td class="Q">([\d]+)<\/td>/) {
-    }
-    else {
+    if($_ =~ m/<tr><td class="SUMM_DESC">([^<]+)<\/td><td class="Q">([\d]+)<\/td>/) {
+      $metrics{$1} = $2;
     }
   }
+
+  close($raw_report);
   return %metrics;
+}
+
+sub actually_process {
+  ...
+}
+
+sub feed {
+  ...
 }
 
 1;

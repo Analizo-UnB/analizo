@@ -1,6 +1,6 @@
 package t::Analizo::Extractor::ClangStaticAnalyzer;
 use base qw(Test::Class);
-use Test::More tests => 5;
+use Test::More tests => 11;
 
 use strict;
 use warnings;
@@ -26,7 +26,39 @@ sub filter_html_report_empty_file : Tests {
   my $report_path = "t/clang_analyzer_reports/blank.html";
   my %metrics = $extractor->filter_html_report($report_path);
   my $metrics_size = keys %metrics;
-  is($metrics_size, 0, "undefined expected for empty files");
+  is($metrics_size, 0, "0 expected for empty files");
+}
+
+#FIXME: check this test
+sub filter_html_report_no_file : Tests {
+  my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
+  my $report_path = "t/clang_analyzer_reports/no_file.html";
+  my %metrics = $extractor->filter_html_report($report_path);
+  my $metrics_size = keys %metrics;
+  is($metrics_size, 0, "0 expected when no files are opened");
+}
+
+sub filter_html_report_random_file : Tests {
+  my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
+  my $report_path = "t/clang_analyzer_reports/analizo_org.html";
+  my %metrics = $extractor->filter_html_report($report_path);
+  my $metrics_size = keys %metrics;
+  is($metrics_size, 0, "no metrics from non report files");
+}
+
+sub filter_html_report_with_reports : Tests {
+  my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
+  my $report_path = "t/clang_analyzer_reports/libreoffice.html";
+  my %metrics = $extractor->filter_html_report($report_path);
+  my $metrics_size = keys %metrics;
+  is($metrics_size , 20, "metrics expected");
+  my $sum = 0;
+  foreach my $value(values %metrics) {
+    $sum += $value;
+  }
+  is($sum, 726, "Sum of metrics from libreoffice.html is 726.");
+  is($metrics{"Argument with 'nonnull' attribute passed null"}, 22);
+  is($metrics{"Undefined allocation of 0 bytes (CERT MEM04-C; CWE-131)"}, 2);
 }
 
 __PACKAGE__->runtests;
