@@ -1,12 +1,13 @@
 package t::Analizo::Extractor::ClangStaticAnalyzer;
 use base qw(Test::Class);
-use Test::More tests => 11;
+use Test::More tests => 12;
 
 use strict;
 use warnings;
 use File::Basename;
 
 use Analizo::Extractor;
+use Analizo::Extractor::ClangStaticAnalyzer;
 
 eval('$Analizo::Extractor::QUIET = 1;'); # the eval is to avoid Test::* complaining about possible typo
 
@@ -29,7 +30,6 @@ sub filter_html_report_empty_file : Tests {
   is($metrics_size, 0, "0 expected for empty files");
 }
 
-#FIXME: check this test
 sub filter_html_report_no_file : Tests {
   my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
   my $report_path = "t/clang_analyzer_reports/no_file.html";
@@ -59,6 +59,14 @@ sub filter_html_report_with_reports : Tests {
   is($sum, 726, "Sum of metrics from libreoffice.html is 726.");
   is($metrics{"Argument with 'nonnull' attribute passed null"}, 22);
   is($metrics{"Undefined allocation of 0 bytes (CERT MEM04-C; CWE-131)"}, 2);
+}
+
+sub filter_html_report_with_reports_from_multiple_files : Tests {
+  my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
+  my $report_path = "t/clang_analyzer_reports/multiple_files.html";
+  my %metrics = $extractor->filter_html_report($report_path);
+  my $metrics_size = keys %metrics;
+  is($metrics_size , 2, "metrics expected");
 }
 
 __PACKAGE__->runtests;
