@@ -1,6 +1,6 @@
 package t::Analizo::Extractor::ClangStaticAnalyzer;
 use base qw(Test::Class);
-use Test::More tests => 12;
+use Test::More tests => 13;
 
 use strict;
 use warnings;
@@ -67,6 +67,23 @@ sub filter_html_report_with_reports_from_multiple_files : Tests {
   my %metrics = $extractor->filter_html_report($report_path);
   my $metrics_size = keys %metrics;
   is($metrics_size , 2, "metrics expected");
+}
+
+sub test_actually_process : Tests {
+  no warnings 'redefine';
+  our %global_metrics;
+
+  sub overriden_feed {
+    my ($self, %metrics) = @_;
+    %global_metrics = %metrics;
+  }
+
+  *Analizo::Extractor::ClangStaticAnalyzer::feed = \&overriden_feed;
+
+  my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
+  $extractor->actually_process("t/samples/clang_analyzer/division_by_zero.c", "t/samples/clang_analyzer/dead_assignment.c");
+  my $metrics_size = keys %global_metrics;
+  is($metrics_size , 2, "2 bugs expected");
 }
 
 __PACKAGE__->runtests;

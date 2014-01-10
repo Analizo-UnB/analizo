@@ -3,6 +3,7 @@ package Analizo::Extractor::ClangStaticAnalyzer;
 use base qw(Analizo::Extractor);
 
 use Cwd;
+use File::Basename;
 
 sub new {
   my ($package, @options) = @_;
@@ -33,7 +34,7 @@ sub actually_process {
   my $output_folder = "/tmp/analizo-clang-analyzer";
 
   #FIXME: Insert regex to enter right directory
-  my $html_report = "$output_folder/2014-01-09-1/index.html";
+  my $html_report = "$output_folder/2014-01-10-1/index.html";
   my $analyze_command = "scan-build -o $output_folder gcc -c $files_list >/dev/null 2>/dev/null";
 
   #FIXME: Eval removed due to returning bug
@@ -41,6 +42,12 @@ sub actually_process {
   %metrics = $self->filter_html_report($html_report);
   system("rm -rf $output_folder");
   $self->feed(%metrics);
+
+  foreach my $object_file(@input_files) {
+    $object_file = fileparse($object_file, qr/\.[^.]*/);
+    $object_file .= ".o";
+    system("rm $object_file");
+  }
 }
 
 sub feed {
