@@ -6,6 +6,7 @@ use warnings;
 my $tree;
 
 sub new {
+  $tree = undef;
   my $package = shift;
   return bless {@_}, $package;
 }
