@@ -40,7 +40,7 @@ sub actually_process {
   foreach my $object_file(@input_files) {
     $object_file = fileparse($object_file, qr/\.[^.]*/);
     $object_file .= ".o";
-    system("rm $object_file");
+    system("rm -f $object_file");
   }
 }
 
@@ -51,6 +51,8 @@ sub feed {
     my $bugs_hash = $tree->{$file_name};
 
     my $module = fileparse($file_name, qr/\.[^.]*/);
+
+    $self->model->declare_module($module,$filename);
 
     if (defined $tree->{$file_name}->{'Division by zero'}) {
       my $value = $tree->{$file_name}->{'Division by zero'};
