@@ -47,6 +47,17 @@ sub actually_process {
 sub feed {
   my ($self, $tree) = @_;
 
+  foreach my $file_name (keys %$tree) {
+    my $bugs_hash = $tree->{$file_name};
+
+    my $module = fileparse($file_name, qr/\.[^.]*/);
+
+    if (defined $tree->{$file_name}->{'Division by zero'}) {
+      my $value = $tree->{$file_name}->{'Division by zero'};
+      $self->model->declare_divisions_by_zero($module, $value);
+    }
+
+  }
 }
 
 1;
