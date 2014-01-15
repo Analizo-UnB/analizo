@@ -12,10 +12,13 @@ hello_world* hello_world_new() {
 }
 
 void hello_world_say(hello_world* hello_obj) {
+  int a = 5/0;
+  int a = 5/0;
   printf("Hello, world! My id is %d\n", hello_obj->id);
 }
 
 void hello_world_destroy(hello_world* hello_obj) {
+  int a = 5/0;
   printf("Goodbye, world! My id is %d\n", hello_obj->id);
   free(hello_obj);
 }
