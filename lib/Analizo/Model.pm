@@ -49,6 +49,11 @@ sub declare_module {
     push @{$self->{module_names}}, $module;
   }
   if (defined($file)) {
+    #undup filename
+    foreach (@{$self->{files}->{$module}}) {
+      return if($_ eq $file);
+    }
+
     $self->{files}->{$module} ||= [];
     push(@{$self->{files}->{$module}}, $file);
 
