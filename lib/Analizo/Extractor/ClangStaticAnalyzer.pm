@@ -31,7 +31,8 @@ sub actually_process {
   system($analyze_command);
   my $html_report = glob("$output_folder/*/index.html");
 
-  open ($file_report, '<', $html_report) or warn $!;
+  #FIXME: Exception for no report file
+  open ($file_report, '<', $html_report) ;# or die $!;
 
   while(<$file_report>){
     $tree = $clang_tree->building_tree($_);
