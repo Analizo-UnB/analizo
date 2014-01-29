@@ -31,14 +31,15 @@ sub actually_process {
   system($analyze_command);
   my $html_report = glob("$output_folder/*/index.html");
 
-  #FIXME: Exception for no report file
-  open ($file_report, '<', $html_report);#  or die $!;
+  if(defined $html_report) {
+    open ($file_report, '<', $html_report);#  or die $!;
 
-  while(<$file_report>){
-    $tree = $clang_tree->building_tree($_);
+    while(<$file_report>){
+      $tree = $clang_tree->building_tree($_);
+    }
+
+    close ($file_report);
   }
-
-  close ($file_report);
 
   system("rm -rf $output_folder");
 
