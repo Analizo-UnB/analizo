@@ -32,7 +32,7 @@ sub actually_process {
   my $html_report = glob("$output_folder/*/index.html");
 
   #FIXME: Exception for no report file
-  open ($file_report, '<', $html_report) ;# or die $!;
+  open ($file_report, '<', $html_report);#  or die $!;
 
   while(<$file_report>){
     $tree = $clang_tree->building_tree($_);
@@ -65,10 +65,12 @@ sub feed {
       my $value = $tree->{$file_name}->{'Division by zero'};
       $self->model->declare_divisions_by_zero($module, $value);
     }
+    else {
+      $self->model->declare_divisions_by_zero($module, 0);
+    }
 
   }
 }
 
 1;
-
 
