@@ -33,7 +33,7 @@ sub test_actually_process : Tests {
   use warnings;
 
   my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
-  $extractor->actually_process("t/samples/clang_analyzer/division_by_zero.c", "t/samples/clang_analyzer/dead_assignment.c");
+  $extractor->actually_process("t/samples/clang_analyzer/division_by_zero.c", "t/samples/clang_analyzer/dead_assignment.c", "t/samples/clang_analyzer/no_compilable.c");
 
   my $total_bugs = 0;
   foreach my $file_name (keys %$report_tree) {
@@ -42,6 +42,7 @@ sub test_actually_process : Tests {
     foreach my $bugs (values %$bugs_hash) {
       $total_bugs += $bugs;
     }
+    
   }
 
   is($total_bugs , 2, "2 bugs expected");
