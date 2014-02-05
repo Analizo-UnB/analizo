@@ -33,15 +33,19 @@ sub actually_process {
     my $analyze_command = "scan-build -o $output_folder gcc -c $c_file >/dev/null 2>/dev/null";
 
     #FIXME: Eval removed due to returning bug
-    #FIXME: Look system documetation (is there return for system)
-    system($analyze_command);
+    my $clang_return = system($analyze_command);
+
+    $c_file =~ s/\.\///;
+
+    if ($clang_return != 0){
+      warn "The file [$c_file] was not compiled. System error: $clang_return\n";
+    }
 
     find({wanted => sub {
           $html_report = $File::Find::name if m/index\.html/;
         }}, $output_folder);
 
     if(defined $html_report) {
-      $c_file =~ s/\.\///;
       open ($file_report, '<', $html_report);
 
       while(<$file_report>){
