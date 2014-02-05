@@ -33,6 +33,7 @@ sub actually_process {
     my $analyze_command = "scan-build -o $output_folder gcc -c $c_file >/dev/null 2>/dev/null";
 
     #FIXME: Eval removed due to returning bug
+    #FIXME: Look system documetation (is there return for system)
     system($analyze_command);
 
     find({wanted => sub {
@@ -40,10 +41,11 @@ sub actually_process {
         }}, $output_folder);
 
     if(defined $html_report) {
+      $c_file =~ s/\.\///;
       open ($file_report, '<', $html_report);
 
       while(<$file_report>){
-        $tree = $clang_tree->building_tree($_);
+        $tree = $clang_tree->building_tree($_, $c_file);
       }
 
       close ($file_report);
@@ -68,7 +70,8 @@ sub feed {
   foreach my $file_name (keys %$tree) {
     my $bugs_hash = $tree->{$file_name};
 
-    my $module = fileparse($file_name, qr/\.[^.]*/);
+    my $module = $file_name;
+    $module =~ s/\.[^.]*$//;
 
     $self->model->declare_module($module, $file_name);
 

@@ -61,12 +61,12 @@ sub feed_declares_divisions_by_zero : Tests {
   };
   use warnings;
   my $tree;
-  $tree->{'file.c'}->{'Division by zero'} = 2;
+  $tree->{'a/b/c.d/dir/file.c'}->{'Division by zero'} = 2;
 
   my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
   $extractor->feed($tree);
 
-  is($received_module,'file','Module name must be the file name.');
+  is($received_module,'a/b/c.d/dir/file','Module name must be the file name.');
   is($received_value, 2, '2 bugs expected.');
 
 }
