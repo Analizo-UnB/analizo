@@ -257,8 +257,8 @@ sub declare_security_metrics {
 }
 
 sub security_metrics {
-  my ($self, $bug_name) = @_;
-  return $self->{security_metrics}->{$bug_name};
+  my ($self, $bug_name, $module) = @_;
+  return $self->{security_metrics}->{$bug_name}->{$module};
 }
 
 #sub declare_divisions_by_zero {

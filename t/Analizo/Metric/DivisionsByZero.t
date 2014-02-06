@@ -1,6 +1,6 @@
 package t::Analizo::Metric::DivisionsByZero;
 use base qw(Test::Class);
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 use strict;
 use warnings;
