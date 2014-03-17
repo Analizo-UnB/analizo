@@ -25,6 +25,8 @@ CheckExtraDependencies(
   'sloccount' => 0,
   'sqlite3' => 0,
   'man' => 0,
+  'clang-3.5' => '(>= 3.5)',
+  'gcc' => '(>= 4.8~)',
 );
 CheckExtraDependencies(
   'build',
