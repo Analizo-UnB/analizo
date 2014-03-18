@@ -43,7 +43,7 @@ Build-Depends-Indep:
  libterm-progressbar-perl,
  libyaml-perl,
  libyaml-tiny-perl,
- libzmq-libzmq2-perl
+ libzeromq-perl
 Standards-Version: 3.9.1
 Homepage: http://analizo.org
 
@@ -83,7 +83,7 @@ Depends:
  libterm-progressbar-perl,
  libyaml-perl,
  libyaml-tiny-perl,
- libzmq-libzmq2-perl
+ libzeromq-perl
 Recommends: graphviz
 Description: multi-language source code analysis toolkit
  Analizo parses source code in multiple languages and report useful information
