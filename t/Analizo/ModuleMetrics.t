@@ -48,6 +48,8 @@ sub metrics_of_module : Tests {
   $model->declare_security_metrics('Allocator sizeof operand mismatch', 'mod1', 17);
   $model->declare_security_metrics('Argument with \'nonnull\' attribute passed null', 'mod1', 19);
   $model->declare_security_metrics('Stack address stored into global variable', 'mod1', 21);
+  $model->declare_security_metrics('Result of operation is garbage or undefined', 'mod1', 21);
+  $model->declare_security_metrics('Potential insecure temporary file in call \'mktemp\'', 'mod1', 21);
   my $report = $module_metrics->report('mod1');
 
   is($report->{'_module'}, 'mod1');
@@ -74,6 +76,8 @@ sub metrics_of_module : Tests {
   is($report->{'asom'}, 17);
   is($report->{'an'}, 19);
   is($report->{'saigv'}, 21);
+  is($report->{'rogu'}, 21);
+  is($report->{'pitfc'}, 21);
 }
 
 __PACKAGE__->runtests;
