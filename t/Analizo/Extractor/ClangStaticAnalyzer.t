@@ -470,6 +470,7 @@ sub feed_declares_potential_insecure_temp_file_in_call : Tests {
   };
   use warnings;
   my $tree;
+
   $tree->{'a/b/c.d/dir/file.c'}->{'Potential insecure temporary file in call \'mktemp\''} = 21;
   
   my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
