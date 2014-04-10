@@ -30,4 +30,5 @@ Feature: Security Metrics
     | an                | 1     |
     | saigv             | 1     |
     | rogu              | 1     |
+    | pitfc             | 1     |
 
