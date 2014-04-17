@@ -18,11 +18,9 @@ sub description {
 
 sub calculate {
   my ($self, $module) = @_;
-
   return 0 if (!defined $self->model->security_metrics('Potential insecure temporary file in call \'mktemp\'', $module));
 
   return $self->model->security_metrics('Potential insecure temporary file in call \'mktemp\'', $module);
-
 }
 
 1;
