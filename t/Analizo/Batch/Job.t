@@ -5,7 +5,6 @@ use base qw(t::Analizo::Test::Class);
 use Test::More;
 use Test::MockObject::Extends;
 use Test::MockModule;
-
 use t::Analizo::Test;
 
 use Analizo::Batch::Job;
@@ -153,30 +152,25 @@ sub cache_of_model_and_metrics : Tests {
 
   # FIXME these are needed because empty hashes are not coming back from the
   # cache. Maybe this is a bug in the CHI cache driver
-  $model2->{calls}->{'Animal::name()'} = {};
-  $model2->{modules}->{'Mammal'} = {};
-  $model2->{security_metrics}->{'Memory leak'} = {};
-  $model2->{security_metrics}->{'Dead assignment'} = {};
-  $model2->{security_metrics}->{'Division by zero'} = {};
-  $model2->{security_metrics}->{'Dereference of null pointer'} = {};
-  $model2->{security_metrics}->{'Assigned value is garbage or undefined'} = {};
-  $model2->{security_metrics}->{'Return of address to stack-allocated memory'} = {};
-  $model2->{security_metrics}->{'Out-of-bound array access'} = {};
-  $model2->{security_metrics}->{'Uninitialized argument value'} = {};
-  $model2->{security_metrics}->{'Bad free'} = {};
-  $model2->{security_metrics}->{'Double free'} = {};
-  $model2->{security_metrics}->{'Bad deallocator'} = {};
-  $model2->{security_metrics}->{'Use-after-free'} = {};
-  $model2->{security_metrics}->{'Offset free'} = {};
-  $model2->{security_metrics}->{'Undefined allocation of 0 bytes (CERT MEM04-C; CWE-131)'} = {};
-  $model2->{security_metrics}->{"Potential buffer overflow in call to \'gets\'"} = {};
-  $model2->{security_metrics}->{'Dereference of undefined pointer value'} = {};
-  $model2->{security_metrics}->{'Allocator sizeof operand mismatch'} = {};
-  $model2->{security_metrics}->{'Argument with \'nonnull\' attribute passed null'} = {};
-  $model2->{security_metrics}->{'Stack address stored into global variable'} = {};
-  $model2->{security_metrics}->{'Result of operation is garbage or undefined'} = {};
+my @bug_list = ('Memory leak', 'Dead assignment', 'Division by zero', 'Dereference of null pointer',
+              'Assigned value is garbage or undefined', 'Return of address to stack-allocated memory',
+              'Out-of-bound array access', 'Uninitialized argument value', 'Bad free', 'Double free',
+              'Bad deallocator', 'Use-after-free', 'Offset free', 'Undefined allocation of 0 bytes (CERT MEM04-C; CWE-131)',
+              'Potential buffer overflow in call to \'gets\'', 'Dereference of undefined pointer value',
+              'Allocator sizeof operand mismatch', 'Allocator sizeof operand mismatch', 'Argument with \'nonnull\' attribute passed null',
+              'Stack address stored into global variable', 'Result of operation is garbage or undefined',
+              'Potential insecure temporary file in call \'mktemp\'');
 
-  $model2->{security_metrics}->{'Potential insecure temporary file in call \'mktemp\''} = {};
+my @module_list = ('Animal', 'Dog', 'main', 'Mammal', 'Cat');
+
+ $model2->{calls}->{'Animal::name()'} = {};
+ $model2->{modules}->{'Mammal'} = {};
+
+foreach my $bugname (@bug_list) {
+  foreach my $moduli (@module_list) {
+    $model2->{security_metrics}->{$bugname}->{$moduli} = {}
+  }
+}
 
   is($model_result, 'cache used', 'use cache for model');
   is($metrics_result, 'cache used', 'use cache for metrics');

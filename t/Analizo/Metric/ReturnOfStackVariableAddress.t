@@ -32,8 +32,8 @@ sub description : Tests {
 
 sub calculate : Tests {
   is($rsva->calculate('file'), 0, 'file without return of stack variable address');
-
-  $model->declare_security_metrics('Return of address to stack-allocated memory', 'file', 2);
+  my $test->{"0"} = 2;
+  $model->declare_security_metrics('Return of address to stack-allocated memory', 'file', $test);
   is($rsva->calculate('file'), 2, 'one module, with 2 return of stack variable address');
 }
 

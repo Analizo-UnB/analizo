@@ -40,7 +40,9 @@ sub test_actually_process : Tests {
     my $bugs_hash = $report_tree->{$file_name};
 
     foreach my $bugs (values %$bugs_hash) {
-      $total_bugs += $bugs;
+        foreach my $line_numbers (values %$bugs) {
+        $total_bugs += $line_numbers;
+      }
     }
 
   }

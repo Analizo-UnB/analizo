@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($da->calculate('file'), 0, 'file without dead assignment');
 
-  $model->declare_security_metrics('Dead assignment', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Dead assignment', 'file', $test);
   is($da->calculate('file'), 2, 'one module, with 2 dead assignment');
 }
 

@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($bf->calculate('file'), 0, 'file without bad free');
 
-  $model->declare_security_metrics('Bad free', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Bad free', 'file', $test);
   is($bf->calculate('file'), 2, 'one module, with 2 bad free');
 }
 

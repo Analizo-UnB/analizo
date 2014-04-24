@@ -11,11 +11,11 @@ use Analizo::Metric::PotentialInsecureTempFileInCall;
 
 eval('$Analizo::Metric::QUIET = 1;'); # the eval is to avoid Test::* complaining about possible typo
 
-use vars qw($model $dnp);
+use vars qw($model $pitfc);
 
 sub setup : Test(setup) {
   $model = new Analizo::Model;
-  $dnp = new Analizo::Metric::PotentialInsecureTempFileInCall(model => $model);
+  $pitfc = new Analizo::Metric::PotentialInsecureTempFileInCall(model => $model);
 }
 
 sub use_package : Tests {
@@ -23,18 +23,19 @@ sub use_package : Tests {
 }
 
 sub has_model : Tests {
-  is($dnp->model, $model);
+  is($pitfc->model, $model);
 }
 
 sub description : Tests {
-  is($dnp->description, "Potential insecure temporary file in call 'mktemp'");
+  is($pitfc->description, "Potential insecure temporary file in call 'mktemp'");
 }
 
 sub calculate : Tests {
-  is($dnp->calculate('file'), 0, 'file dont use temporary file in call');
+  is($pitfc->calculate('file'), 0, 'file dont use temporary file in call');
 
-  $model->declare_security_metrics('Potential insecure temporary file in call \'mktemp\'', 'file', 1);
-  is($dnp->calculate('file'), 1, 'one module, with 1 Result of potential insecure temporary file in call');
+  my $test->{'0'} = 1;
+  $model->declare_security_metrics('Potential insecure temporary file in call \'mktemp\'', 'file', $test);
+  is($pitfc->calculate('file'), 1, 'one module, with 1 Result of potential insecure temporary file in call');
 }
 
 __PACKAGE__->runtests;

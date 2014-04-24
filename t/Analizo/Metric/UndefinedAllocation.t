@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($ua->calculate('file'), 0, 'file without undefined allocation');
 
-  $model->declare_security_metrics('Undefined allocation of 0 bytes (CERT MEM04-C; CWE-131)', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Undefined allocation of 0 bytes (CERT MEM04-C; CWE-131)', 'file', $test);
   is($ua->calculate('file'), 2, 'one module, with 2 undefined allocation');
 }
 

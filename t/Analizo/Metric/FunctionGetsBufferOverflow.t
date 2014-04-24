@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($fgbo->calculate('file'), 0, 'file without offset free');
 
-  $model->declare_security_metrics("Potential buffer overflow in call to \'gets\'", 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics("Potential buffer overflow in call to \'gets\'", 'file', $test);
   is($fgbo->calculate('file'), 2, 'one module, with 2 offset free');
 }
 

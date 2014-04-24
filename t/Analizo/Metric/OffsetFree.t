@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($osf->calculate('file'), 0, 'file without offset free');
 
-  $model->declare_security_metrics('Offset free', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Offset free', 'file', $test);
   is($osf->calculate('file'), 2, 'one module, with 2 offset free');
 }
 

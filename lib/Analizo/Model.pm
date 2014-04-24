@@ -18,7 +18,7 @@ sub new {
     abstract_classes => [],
     module_names => [],
     total_eloc => 0,
-    security_metrics => {}
+    security_metrics => {},
   );
   return bless { @defaults }, __PACKAGE__;
 }
@@ -250,7 +250,13 @@ sub declare_security_metrics {
 
 sub security_metrics {
   my ($self, $bug_name, $module) = @_;
-  return $self->{security_metrics}->{$bug_name}->{$module};
+  my $total = 0;
+
+  foreach my $callee (keys %{$self->{security_metrics}->{$bug_name}->{$module}}) {
+    $total += $self->{security_metrics}->{$bug_name}->{$module}->{$callee};
+  }
+
+  return "$total";
 }
 
 sub _add_dependency {

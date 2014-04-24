@@ -11,11 +11,11 @@ use Analizo::Metric::ResultIsGarbage;
 
 eval('$Analizo::Metric::QUIET = 1;'); # the eval is to avoid Test::* complaining about possible typo
 
-use vars qw($model $dnp);
+use vars qw($model $rogu);
 
 sub setup : Test(setup) {
   $model = new Analizo::Model;
-  $dnp = new Analizo::Metric::ResultIsGarbage(model => $model);
+  $rogu = new Analizo::Metric::ResultIsGarbage(model => $model);
 }
 
 sub use_package : Tests {
@@ -23,18 +23,19 @@ sub use_package : Tests {
 }
 
 sub has_model : Tests {
-  is($dnp->model, $model);
+  is($rogu->model, $model);
 }
 
 sub description : Tests {
-  is($dnp->description, "Result of operation is garbage or undefined");
+  is($rogu->description, "Result of operation is garbage or undefined");
 }
 
 sub calculate : Tests {
-  is($dnp->calculate('file'), 0, 'file without garbage or undefined operation');
+  is($rogu->calculate('file'), 0, 'file without garbage or undefined operation');
 
-  $model->declare_security_metrics('Result of operation is garbage or undefined', 'file', 1);
-  is($dnp->calculate('file'), 1, 'one module, with 1 Result of operation that is garbage or undefined');
+  my $test->{'0'} = 1;
+  $model->declare_security_metrics('Result of operation is garbage or undefined', 'file', $test);
+  is($rogu->calculate('file'), 1, 'one module, with 1 Result of operation that is garbage or undefined');
 }
 
 __PACKAGE__->runtests;
