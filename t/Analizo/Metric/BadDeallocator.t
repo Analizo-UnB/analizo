@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($bd->calculate('file'), 0, 'file without bad deallocator');
 
-  $model->declare_security_metrics('Bad deallocator', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Bad deallocator', 'file', $test);
   is($bd->calculate('file'), 2, 'one module, with 2 bad deallocator');
 }
 

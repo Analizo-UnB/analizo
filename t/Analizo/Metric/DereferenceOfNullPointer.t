@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($dnp->calculate('file'), 0, 'file without dereference of null pointer');
 
-  $model->declare_security_metrics('Dereference of null pointer', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Dereference of null pointer', 'file', $test);
   is($dnp->calculate('file'), 2, 'one module, with 2 dereference of null pointer');
 }
 

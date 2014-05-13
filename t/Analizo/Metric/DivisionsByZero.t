@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($dbz->calculate('file'), 0, 'file without divisions by zero');
 
-  $model->declare_security_metrics('Division by zero', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Division by zero', 'file', $test);
   is($dbz->calculate('file'), 2, 'one module, with 2 divisions by zero');
 }
 

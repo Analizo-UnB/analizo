@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($dupv->calculate('file'), 0, 'file without dereference of undefined pointer value');
 
-  $model->declare_security_metrics('Dereference of undefined pointer value', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Dereference of undefined pointer value', 'file', $test);
   is($dupv->calculate('file'), 2, 'one module, with 2 dereference of undefined pointer value');
 }
 

@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($auv->calculate('file'), 0, 'file without assigned undefined value');
 
-  $model->declare_security_metrics('Assigned value is garbage or undefined', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Assigned value is garbage or undefined', 'file', $test);
   is($auv->calculate('file'), 2, 'one module, with 2 assigned undefined value');
 }
 

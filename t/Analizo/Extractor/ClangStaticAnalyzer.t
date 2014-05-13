@@ -40,12 +40,14 @@ sub test_actually_process : Tests {
     my $bugs_hash = $report_tree->{$file_name};
 
     foreach my $bugs (values %$bugs_hash) {
-      $total_bugs += $bugs;
+        foreach my $line_numbers (values %$bugs) {
+        $total_bugs += $line_numbers;
+      }
     }
 
   }
   is($report_tree->{'t/samples/clang_analyzer/no_compilable.c'}->{'Memory leak'}, undef, 'Metric must be undef');
-  is($total_bugs , 3, "3 bugs expected");
+  is($total_bugs , 4, "4 bugs expected");
 }
 
 sub feed_declares_divisions_by_zero : Tests {
@@ -455,6 +457,29 @@ sub feed_declares_stack_address_into_global_variable : Tests {
 
   is($received_module,'a/b/c.d/dir/file','Stack address stored into global variable');
   is($received_value, 19, '19 bugs expected.');
+
+}
+
+sub feed_declares_potential_insecure_temp_file_in_call : Tests {
+  our $received_module;
+  our $received_value;
+
+  no warnings;
+  local *Analizo::Model::declare_security_metrics = sub {
+    my ($self, $bug_name, $module, $value) = @_;
+    $received_module = $module;
+    $received_value = $value;
+  };
+  use warnings;
+  my $tree;
+
+  $tree->{'a/b/c.d/dir/file.c'}->{'Potential insecure temporary file in call \'mktemp\''} = 21;
+
+  my $extractor = new Analizo::Extractor::ClangStaticAnalyzer;
+  $extractor->feed($tree);
+
+  is($received_module,'a/b/c.d/dir/file','Potential insecure temporary file in call \'mktemp\'');
+  is($received_value, 21, '21 bugs expected.');
 
 }
 

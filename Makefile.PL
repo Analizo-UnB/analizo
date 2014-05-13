@@ -25,16 +25,14 @@ CheckExtraDependencies(
   'sloccount' => 0,
   'sqlite3' => 0,
   'man' => 0,
-  'clang-3.5' => '(>= 3.5)',
   'gcc' => '(>= 4.8~)',
   'g++' => '(>= 4.8~)',
 );
 CheckExtraDependencies(
   'build',
-  'cucumber' => 0,
-  'file' => 0,
   'rake' => 0,
   'rspec' => 0,
+  'clang-3.5' => 0,
 );
 
 install_share 'share';
@@ -72,12 +70,18 @@ WriteMakefile(
     'Class::Inspector' => 0,
     'Graph::Writer::DSM' => 0.005,
     'FindBin::libs' => 0,
+    'Graph::Writer::Dot' => 0,
   },
   BUILD_REQUIRES => {
     'Test::Class' => 0,
     'Test::Exception' => 0,
     'Test::MockObject' => 0,
     'Test::MockModule' => 0,
+    'Test::BDD::Cucumber' => 0,
+    'Method::Signatures' => 0,
+    'File::Slurp' => 0,
+    'File::Copy::Recursive' => 0,
+    'File::LibMagic' => 0,
   },
   test => {
     TESTS => 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t',

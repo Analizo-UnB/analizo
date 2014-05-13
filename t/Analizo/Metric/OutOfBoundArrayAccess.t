@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($obaa->calculate('file'), 0, 'file without out-of-bound array access');
 
-  $model->declare_security_metrics('Out-of-bound array access', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Out-of-bound array access', 'file', $test);
   is($obaa->calculate('file'), 2, 'one module, with 2 out-of-bound array access');
 }
 

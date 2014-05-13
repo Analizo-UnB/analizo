@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($saigv->calculate('file'), 0, 'file without stack address into global variable');
 
-  $model->declare_security_metrics('Stack address stored into global variable', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Stack address stored into global variable', 'file', $test);
   is($saigv->calculate('file'), 2, 'one module, with 2 stack address into global variable');
 }
 

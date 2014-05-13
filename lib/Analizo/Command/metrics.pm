@@ -33,6 +33,7 @@ sub opt_spec {
     [ 'includedirs|I=s',  'include <dirs> (a colon-separated list of directories) with C/C++ header files' ],
     [ 'libdirs|L=s',  'include <dirs> (a colon-separated list of directories) with C/C++ static and dynamic libraries files' ],
     [ 'libs=s',  'include <dirs> (a colon-separated list of directories) with C/C++ linked libraries files' ],
+    [ 'displaylinenumbers|dln',   'display the line where the metric occurs'],
   );
 }
 
@@ -115,7 +116,11 @@ sub execute {
   }
   else {
     print $metrics->report;
+    if ($opt->displaylinenumbers) {
+     print $metrics->report_line_numbers;
+    } 
   }
+
   close STDOUT;
 }
 
@@ -184,6 +189,10 @@ when C/C++ source code must be compiled (Clang extractor).
 
 Link the source code with external libraries. This is used when C/C++ source
 code must be compiled (Clang extractor).
+
+=item --displaylinenumbers, -dln
+
+Show where the security metrics occurs in each line of the module. 
 
 =back
 

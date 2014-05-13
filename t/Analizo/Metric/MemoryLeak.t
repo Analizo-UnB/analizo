@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($mlk->calculate('file'), 0, 'file without memory leak');
 
-  $model->declare_security_metrics('Memory leak', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Memory leak', 'file', $test);
   is($mlk->calculate('file'), 2, 'one module, with 2 memory leak');
 }
 

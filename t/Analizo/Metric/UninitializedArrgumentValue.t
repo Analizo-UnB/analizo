@@ -33,7 +33,8 @@ sub description : Tests {
 sub calculate : Tests {
   is($uav->calculate('file'), 0, 'file without uninitialized argument value');
 
-  $model->declare_security_metrics('Uninitialized argument value', 'file', 2);
+  my $test->{'0'} = 2;
+  $model->declare_security_metrics('Uninitialized argument value', 'file', $test);
   is($uav->calculate('file'), 2, 'one module, with 2 uninitialized argument value');
 }
 

@@ -52,6 +52,33 @@ sub report_module_metrics {
   return join('', map { Dump($_) } @{$self->module_data()});
 }
 
+sub report_line_numbers {
+  my ($self) = @_;
+  my $total = 0;
+  my @bugs;
+  my $current_bug = "";
+  my $report = "";
+
+  foreach my $bug_name (keys %{$self->{model}->{security_metrics}}) {
+    foreach my $module_name (keys %{$self->{model}->{security_metrics}->{$bug_name}}) {
+      $total = $self->{model}->security_metrics($bug_name, $module_name);
+      if($total) {
+        if(!($current_bug eq $bug_name)) {
+          $report = $report . "\n$bug_name: \n";
+          $current_bug = $bug_name;
+        }
+        my $temp_line_numbers = "";
+        foreach my $line_number (keys %{$self->{model}->{security_metrics}->{$bug_name}->{$module_name}}) {
+          $temp_line_numbers = $temp_line_numbers . "," . $line_number;
+        }
+        $temp_line_numbers =~ s/^,//;
+        $report = $report . "- module $module_name: $temp_line_numbers\n";
+      }
+    }
+  }
+  return $report;
+}
+
 sub data {
   my ($self) = @_;
   $self->_collect_and_combine_module_metrics;
