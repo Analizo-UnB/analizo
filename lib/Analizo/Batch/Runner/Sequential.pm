@@ -11,8 +11,9 @@ sub actually_run {
   my $i = 0;
 
   while (my $job = $batch->next()) {
-    require Analizo::Command::metrics_batch;
-    $job = Analizo::Command::metrics_batch->extractor_and_language_apply($opt,$job);
+    if($opt) {
+      $job = Analizo::Command::metrics_batch->extractor_and_language_apply($opt,$job);
+    }
     $job->execute();
     $output->push($job);
     $i++;
