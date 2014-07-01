@@ -28,6 +28,8 @@ sub opt_spec {
     [ 'output|o=s',   'output file name', { default => 'metrics.csv' } ],
     [ 'quiet|q',      'supresses messages to standard output' ],
     [ 'parallel|p=i', 'activates support for parallel processing' ],
+    [ 'extractor=s',  'which extractor method use to analise source code'],
+    [ 'language=s',   'process only filenames matching known extensions for the <lang>> programming']
   );
 }
 
@@ -59,7 +61,18 @@ sub execute {
   my $batch = new Analizo::Batch::Directories(@$args);
   my $output = new Analizo::Batch::Output::CSV;
   $output->file($opt->output);
-  $runner->run($batch, $output);
+  $runner->run($batch, $output, $opt);
+}
+
+sub extractor_and_language_apply {
+  my ($self, $opt, $job) = @_;
+  $job->extractor($opt->extractor);
+  if($opt->language) {
+    require Analizo::LanguageFilter;
+    my $language_filter = Analizo::LanguageFilter->new($opt->language);
+    $job->filters($language_filter);
+  }
+  return $job;
 }
 
 =head1 DESCRIPTION
