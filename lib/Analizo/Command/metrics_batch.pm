@@ -62,15 +62,19 @@ sub execute {
   my $output = new Analizo::Batch::Output::CSV;
   $output->file($opt->output);
   $runner->run($batch, $output, $opt);
+  use Data::Dumper;
+  print Dumper $opt;
 }
 
 sub extractor_and_language_apply {
   my ($self, $opt, $job) = @_;
-  $job->extractor($opt->extractor);
-  if($opt->language) {
-    require Analizo::LanguageFilter;
-    my $language_filter = Analizo::LanguageFilter->new($opt->language);
-    $job->filters($language_filter);
+  if($opt) {
+    $job->extractor($opt->extractor);
+    if($opt->language) {
+      require Analizo::LanguageFilter;
+      my $language_filter = Analizo::LanguageFilter->new($opt->language);
+      $job->filters($language_filter);
+    }
   }
   return $job;
 }
