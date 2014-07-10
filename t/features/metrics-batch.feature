@@ -29,3 +29,9 @@ Feature: metrics batch
     And I run "diff -u sequential-sorted.csv parallel-sorted.csv"
     Then the output must not match "---"
     Then the exit status must be 0
+
+  Scenario: support for --language flag on sequential processing
+    Given I am in t/samples/hello_world
+    When I run "analizo metrics-batch --language=c && cat cpp-details.csv && cat java-details.csv"
+    Then the output must not match "HelloWorld.java"
+    And the output must not match "hello_world.h"
