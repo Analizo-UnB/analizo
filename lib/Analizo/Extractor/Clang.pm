@@ -75,6 +75,16 @@ sub _visit_node($$$) {
           $self->model->declare_function($module_name, $function, $function);
         }
       );
+
+      _find_children_by_kind($node, 'VarDecl',
+        sub {
+          my ($child) = @_;
+          my $variable = $child->spelling;
+          my ($child_file) = $child->location;
+          return if ($child_file ne $name);
+          $self->model->declare_variable($module_name, $variable, $variable);
+        }
+      );
     }
     
     if($is_c_code && $kind eq 'FunctionDecl'){

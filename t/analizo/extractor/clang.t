@@ -66,6 +66,12 @@ sub c_function_parameters : Tests {
     is($got, $expected,"parameters in hello_world_say");
 }
 
+sub c_global_variables : Tests {
+  my @expected = qw(hello_world_id);
+  my @got = sort(@{$hello_world->{modules}->{hello_world}->{variables}});
+  is_deeply(\@got, \@expected, 'global variables in hello_world module');
+}
+
 # TODO - based on functionality from doxyparse extractor
 #
 # current module
