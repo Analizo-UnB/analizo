@@ -60,6 +60,13 @@ sub _visit_node($$$) {
           $self->model->declare_function($name, $method, $method);
         }
       );
+      _find_children_by_kind($node, 'FieldDecl',
+        sub {
+          my ($child) = @_;
+          my $variable = $child->spelling;
+          $self->model->declare_variable($name, $variable, $variable);
+        }
+      );
     }
 
     if ($is_c_code && $kind eq 'TranslationUnit') {

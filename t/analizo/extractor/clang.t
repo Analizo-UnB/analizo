@@ -50,6 +50,12 @@ sub cpp_methods : Test {
   is_deeply($got, \@expected);
 }
 
+sub cpp_variables : Test {
+  my @expected = qw(_name);
+  my $got = $animals->{modules}->{Cat}->{variables};
+  is_deeply($got, \@expected);
+}
+
 sub c_functions : Tests {
   my @expected = qw(hello_world_destroy hello_world_new hello_world_say);
   my @got = sort(@{$hello_world->{modules}->{hello_world}->{functions}});
