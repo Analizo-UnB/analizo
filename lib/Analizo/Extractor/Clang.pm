@@ -76,10 +76,29 @@ sub _visit_node($$$) {
         }
       );
     }
+    
+    if($is_c_code && $kind eq 'FunctionDecl'){
+
+        _find_children_by_kind($node, 'ParmDecl',
+            sub{
+                my($child) = @_;
+                my $parameter = $child->spelling;
+
+		        if($file =~ /.h$/){
+			        return;
+		        }		
+
+                my $num_parameters = $self->model->{parameters}->{$name};
+                $num_parameters = ($num_parameters == undef)?1:$num_parameters+1;    
+
+                $self->model->add_parameters($node->spelling, $num_parameters);
+            }
+        );   
+    }    
 
     my $children = $node->children;
     foreach my $child(@$children) {
-      $self->_visit_node($child);
+      $self->_visit_node($child, $is_c_code);
     }
 }
 

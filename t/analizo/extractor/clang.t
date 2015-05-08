@@ -59,6 +59,13 @@ sub c_functions : Tests {
   is_deeply($main_functions, ['main'], 'functions in main module');
 }
 
+sub c_function_parameters : Tests {
+    my $expected = 1;
+    my $got = $hello_world->{parameters}->{'hello_world_say'};
+
+    is($got, $expected,"parameters in hello_world_say");
+}
+
 # TODO - based on functionality from doxyparse extractor
 #
 # current module
