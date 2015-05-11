@@ -7,6 +7,15 @@ use warnings;
 use Data::Dumper;
 
 use Analizo::Extractor::Clang;
+use Analizo::Extractor::Doxyparse;
+
+my $doxyextractor = Analizo::Extractor->load('Doxyparse');
+$doxyextractor->process('t/samples/hello_world/c/hello_world.c');
+my $doxyparsemodel = $doxyextractor->model;
+
+my $extractordoxyparse1 = Analizo::Extractor->load('Doxyparse');
+$extractordoxyparse1->process('t/samples/animals/cpp');
+my $animalsdoxyparse = $extractordoxyparse1->model;
 
 my $extractor1 = Analizo::Extractor->load('Clang');
 $extractor1->process('t/samples/animals/cpp');
@@ -16,8 +25,12 @@ my $extractor2 = Analizo::Extractor->load('Clang');
 $extractor2->process('t/samples/hello_world/c');
 my $hello_world = $extractor2->model;
 
-print(Dumper($animals)); # FIXME remove this
-print(Dumper($hello_world)); # FIXME remove this
+my $extractor3 = Analizo::Extractor->load('Clang');
+$extractor3->process('t/samples/hello_world/c/hello_world.c');
+my $hello_world3 = $extractor3->model;
+
+#print(Dumper($animals)); # FIXME remove this
+#print(Dumper($hello_world)); # FIXME remove this
 
 sub cpp_classes : Tests {
   my @expected = qw(Animal Cat Dog Mammal);
@@ -42,6 +55,16 @@ sub inheritance : Tests {
 
   @got = $animals->inheritance('Dog');
   is_deeply(\@got, \@expected);
+}
+
+
+print(Dumper($animalsdoxyparse));
+print(Dumper($animals));
+
+sub current_file : Test{
+	
+	is_deeply($doxyparsemodel->{files},$hello_world3->{files});
+	is_deeply($animalsdoxyparse->{files}, $animals->{files});
 }
 
 sub cpp_methods : Test {

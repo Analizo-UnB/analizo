@@ -5,12 +5,13 @@ use strict;
 use base qw(Analizo::Extractor);
 
 use File::Basename;
-
+use Cwd;
 use Clang;
+use Data::Dumper;
 
 sub new {
   my $package = shift;
-  return bless { files => [], visited_nodes => { }, @_ }, $package;
+  return bless { files => {}, visited_nodes => { }, @_ }, $package;
 }
 
 sub actually_process($@) {
@@ -22,7 +23,12 @@ sub actually_process($@) {
     $is_c_code = 0;
   }
 
+  for my $file(@input){
+	$self->add_file($file);
+  }
+
   for my $file (@input) {
+    #$self->add_file($file);
     my $tunit = $index->parse($file);
     my $node = $tunit->cursor;
     $self->_visit_node($node, $is_c_code);
@@ -43,6 +49,7 @@ sub _visit_node($$$) {
 
     if ($kind eq 'ClassDecl') {
       $self->model->declare_module($name);
+      $self->_get_files_module($name);
       _find_children_by_kind($node, 'C++ base class specifier',
         sub {
           my ($child) = @_;
@@ -71,7 +78,9 @@ sub _visit_node($$$) {
 
     if ($is_c_code && $kind eq 'TranslationUnit') {
       my $module_name = basename($name);
+      
       $module_name =~ s/\.\w+$//;
+      $self->_get_files_module($module_name,$is_c_code);
       $self->model->declare_module($module_name);
       _find_children_by_kind($node, 'FunctionDecl',
         sub {
@@ -127,5 +136,38 @@ sub _find_children_by_kind($$$) {
     }
   }
 }
+
+
+
+sub add_file{
+
+	my ($self,$file) = @_;
+
+	my $filename = basename($file,('.c','.h','.cpp','.cc' ));
+	$filename = lc($filename);
+    	$self->{files}->{$filename} ||=[];
+    	push(@{$self->{files}->{$filename}},$file);
+
+	
+	
+}
+
+sub _get_files_module{
+  my ($self, $module,$is_c_code) = @_;
+
+   my $module_lc;
+
+   if($is_c_code){
+	$module_lc = basename($module,('.c'));
+   }
+   $module_lc = lc($module); 
+   print(Dumper($module));
+   #print(Dumper($self->{files}));
+   my @implementations =  @{$self->{files}->{$module_lc}};
+    foreach my $impl (@implementations) {
+      $self->model->declare_module($module, $impl);
+   }
+}
+
 
 1;
