@@ -29,11 +29,15 @@ my $extractor3 = Analizo::Extractor->load('Clang');
 $extractor3->process('t/samples/hello_world/c/hello_world.c');
 my $hello_world3 = $extractor3->model;
 
+my $extractor4 = Analizo::Extractor->load('Clang');
+$extractor4->process('t/samples/animails/cpp/main.cc');
+my $main_model = $extractor4->model;
+
 #print(Dumper($animals)); # FIXME remove this
 #print(Dumper($hello_world)); # FIXME remove this
 
 sub cpp_classes : Tests {
-  my @expected = qw(Animal Cat Dog Mammal);
+  my @expected = qw(Animal Cat Dog Mammal main);
   my @got = sort($animals->module_names);
   is_deeply(\@got, \@expected);
 }
@@ -57,14 +61,37 @@ sub inheritance : Tests {
   is_deeply(\@got, \@expected);
 }
 
+sub current_file : Tests{
+	my $files = {
+                      'main' => [
+                                  't/samples/animals/cpp/main.cpp',
+                                  't/samples/animals/cpp/main.cc'
+                                ],
+                      'Animal' => [
+                                    't/samples/animals/cpp/animal.h'
+                                  ],
+                      'Mammal' => [
+                                    't/samples/animals/cpp/mammal.h'
+                                  ],
+                      'Dog' => [
+                                 't/samples/animals/cpp/dog.cc',
+                                 't/samples/animals/cpp/dog.h'
+                               ],
+                      'Cat' => [
+                                 't/samples/animals/cpp/cat.h',
+                                 't/samples/animals/cpp/cat.cc'
+                               ]
+	 };
 
-print(Dumper($animalsdoxyparse));
-print(Dumper($animals));
-
-sub current_file : Test{
+	my $filesc = {
+		      'hello_world' => [
+					 't/samples/hello_world/c/hello_world.c'
+				       ]
+	};
 	
-	is_deeply($doxyparsemodel->{files},$hello_world3->{files});
-	is_deeply($animalsdoxyparse->{files}, $animals->{files});
+	is_deeply(\$filesc,\$hello_world3->{files});
+	
+	is_deeply(\$files, \$animals->{files});
 }
 
 sub cpp_methods : Test {

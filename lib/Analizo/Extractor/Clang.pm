@@ -76,6 +76,11 @@ sub _visit_node($$$) {
       );
     }
 
+    if(!$is_c_code && $kind eq 'FunctionDecl'){
+		$self->model->declare_module($name);
+		$self->_get_files_module($name);
+    }
+
     if ($is_c_code && $kind eq 'TranslationUnit') {
       my $module_name = basename($name);
       
@@ -163,10 +168,12 @@ sub _get_files_module{
    $module_lc = lc($module); 
    print(Dumper($module));
    #print(Dumper($self->{files}));
-   my @implementations =  @{$self->{files}->{$module_lc}};
-    foreach my $impl (@implementations) {
-      $self->model->declare_module($module, $impl);
-   }
+   if(exists($self->{files}->{$module_lc})){
+	   my @implementations =   @{$self->{files}->{$module_lc}};
+	    foreach my $impl (@implementations) {
+	      $self->model->declare_module($module, $impl);
+	   }
+  }
 }
 
 
