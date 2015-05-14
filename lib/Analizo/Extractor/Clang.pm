@@ -49,14 +49,14 @@ sub _visit_node($$$) {
 
     if($is_c_code){
 	$self->manager_c_files($node,$file,$name,$kind);
-    }else{   
+    }else{
 
 	$self->manager_cpp_files($node,$file,$name,$kind);
     }
     my $children = $node->children;
     foreach my $child(@$children){
 	$self->_visit_node($child,$is_c_code);
-    } 
+    }
 }
 
 sub manager_cpp_files{
@@ -104,7 +104,7 @@ sub manager_cpp_files{
 
 sub manager_c_files{
       my ($self,$node,$file,$name,$kind) = @_;
-	
+
       if ($kind eq 'TranslationUnit') {
 	      my $module_name = basename($name,(".c",".h"));
 	      $self->current_module($module_name);
@@ -125,11 +125,11 @@ sub manager_c_files{
 
 				if($file =~ /.h$/){
 					return;
-				}		
+				}
 
 			my $num_parameters = $self->model->{parameters}->{$name};
 			my $function_name = update_method_name($self->model->{module_names}[0],$child->spelling);
-			$num_parameters = ($num_parameters == undef)?1:$num_parameters+1;    
+			$num_parameters = ($num_parameters == undef)?1:$num_parameters+1;
 
 			$self->model->add_parameters($function_name, $num_parameters);
 		    }

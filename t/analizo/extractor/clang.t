@@ -84,8 +84,9 @@ sub current_file : Tests{
                                  't/samples/animals/cpp/dog.h'
                                ],
                       'Cat' => [
-                                 't/samples/animals/cpp/cat.cc',
-                                 't/samples/animals/cpp/cat.h'
+
+                                 't/samples/animals/cpp/cat.h',
+                                 't/samples/animals/cpp/cat.cc'
                                ]
 	 };
 
