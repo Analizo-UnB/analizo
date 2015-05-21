@@ -92,7 +92,7 @@ sub current_file : Tests{
   my @keys = sort { $files->{$a} <=> $files->{$b} } keys(%$files);
   my @vals = @{$files}{@keys};
 
-  my @animals_keys = sort { $animals->{files}->{$a} <=> $animals->{files}->{$b} } keys(%$animals->{files});
+  my @animals_keys = sort { $animals->{files}->{$a} <=> $animals->{files}->{$b} } keys%{($animals->{files})};
   my @animals_vals = @{$animals->{files}}{@animals_keys};
 
 	is_deeply(\$filesc,\$hello_world3->{files});
