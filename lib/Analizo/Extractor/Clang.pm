@@ -109,7 +109,7 @@ sub _visit_node($$$) {
     }
     
     if($is_c_code && $kind eq 'FunctionDecl'){
-
+        my $module_name = basename($name);
         _find_children_by_kind($node, 'ParmDecl',
             sub{
                 my($child) = @_;
@@ -120,9 +120,10 @@ sub _visit_node($$$) {
 		        }		
 
                 my $num_parameters = $self->model->{parameters}->{$name};
+                my $function_name = update_method_name($self->model->{module_names}[0],$node->spelling);
                 $num_parameters = ($num_parameters == undef)?1:$num_parameters+1;    
 
-                $self->model->add_parameters($node->spelling, $num_parameters);
+                $self->model->add_parameters($function_name, $num_parameters);
             }
         );   
     }    
@@ -131,6 +132,12 @@ sub _visit_node($$$) {
     foreach my $child(@$children) {
       $self->_visit_node($child, $is_c_code);
     }
+}
+
+sub update_method_name {
+  my ($module, $method) = @_;
+  my $final_name = "${module}::${method}";
+  return $final_name;
 }
 
 sub _find_children_by_kind($$$) {

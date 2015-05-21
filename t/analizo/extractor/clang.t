@@ -33,8 +33,8 @@ my $extractor4 = Analizo::Extractor->load('Clang');
 $extractor4->process('t/samples/animails/cpp/main.cc');
 my $main_model = $extractor4->model;
 
-#print(Dumper($animals)); # FIXME remove this
-#print(Dumper($hello_world)); # FIXME remove this
+print(Dumper($animals)); # FIXME remove this
+print(Dumper($hello_world)); # FIXME remove this
 
 sub cpp_classes : Tests {
   my @expected = qw(Animal Cat Dog Mammal main);
@@ -78,8 +78,8 @@ sub current_file : Tests{
                                  't/samples/animals/cpp/dog.h'
                                ],
                       'Cat' => [
-                                 't/samples/animals/cpp/cat.h',
-                                 't/samples/animals/cpp/cat.cc'
+                                 't/samples/animals/cpp/cat.cc',
+                                 't/samples/animals/cpp/cat.h'
                                ]
 	 };
 
@@ -125,7 +125,7 @@ sub c_functions : Tests {
 
 sub c_function_parameters : Tests {
     my $expected = 1;
-    my $got = $hello_world->{parameters}->{'hello_world_say'};
+    my $got = $hello_world->{parameters}->{'hello_world::hello_world_say'};
 
     is($got, $expected,"parameters in hello_world_say");
 }
@@ -134,6 +134,12 @@ sub c_global_variables : Tests {
   my @expected = qw(hello_world_id);
   my @got = sort(@{$hello_world->{modules}->{hello_world}->{variables}});
   is_deeply(\@got, \@expected, 'global variables in hello_world module');
+}
+
+sub update_method_name : Tests {
+  my $expected = "file::method";
+  my $got = Analizo::Extractor::Clang::update_method_name("file","method");
+  is($got, $expected,"Update method name");
 }
 
 # TODO - based on functionality from doxyparse extractor
