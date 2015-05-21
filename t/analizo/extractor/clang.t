@@ -99,6 +99,7 @@ sub current_file : Tests{
 	
 	# is_deeply(\$files, \$animals->{files}); # FIXME Random orders in hash
   is(@keys,@animals_keys);
+  is(@vals,@animals_vals);
 }
 
 sub cpp_methods : Test {
