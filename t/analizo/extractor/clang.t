@@ -42,6 +42,12 @@ sub cpp_classes : Tests {
   is_deeply(\@got, \@expected);
 }
 
+sub cpp_abstract_classes : Tests {
+  my @expected = qw(Animal);
+  my @got = sort($animals->abstract_classes);
+  is_deeply(\@got, \@expected);
+}
+
 sub c_modules : Tests {
   my @expected = qw(hello_world main);
   my @got = sort($hello_world->module_names);
@@ -88,7 +94,7 @@ sub current_file : Tests{
 					 't/samples/hello_world/c/hello_world.c'
 				       ]
 	};
-	
+
   my @keys = sort { $files->{$a} <=> $files->{$b} } keys(%$files);
   my @vals = @{$files}{@keys};
 
@@ -96,7 +102,7 @@ sub current_file : Tests{
   my @animals_vals = @{$animals->{files}}{@animals_keys};
 
 	is_deeply(\$filesc,\$hello_world3->{files});
-	
+
 	# is_deeply(\$files, \$animals->{files}); # FIXME Random orders in hash
   is(@keys,@animals_keys);
   is(@vals,@animals_vals);

@@ -62,7 +62,7 @@ sub _visit_node($$$) {
 sub manager_cpp_files{
         my ($self,$node,$file,$name,$kind) = @_;
 	if ($kind eq 'ClassDecl') {
-	      $self->model->declare_module($name);
+	      $self->current_module($name);
 	      $self->_get_files_module($name);
 	      _find_children_by_kind($node, 'C++ base class specifier',
 		sub {
@@ -79,6 +79,9 @@ sub manager_cpp_files{
 		  my ($child) = @_;
 		  my $method = $child->spelling;
 		  $self->model->declare_function($name, $method, $method);
+		  if($child->is_pure_virtual && !(grep {$self->current_module eq  $_ }($self->model->abstract_classes))) {
+              		$self->model->add_abstract_class($self->current_module);
+                  }
 		}
 	      );
 	      _find_children_by_kind($node, 'FieldDecl',
@@ -103,8 +106,8 @@ sub manager_c_files{
       my ($self,$node,$file,$name,$kind) = @_;
 	
       if ($kind eq 'TranslationUnit') {
-	      my $module_name = basename($name);
-	      
+	      my $module_name = basename($name,(".c",".h"));
+	      $self->current_module($module_name);
 	      $module_name =~ s/\.\w+$//;
 	      $self->_get_files_module($module_name,1);
 	      _find_children_by_kind($node, 'FunctionDecl',
@@ -146,8 +149,6 @@ sub manager_c_files{
 		}
 	      );
     }
-    
-    
 
 }
 
@@ -166,39 +167,27 @@ sub _find_children_by_kind($$$) {
   }
 }
 
-
-
 sub add_file{
-
-	my ($self,$file) = @_;
-
-	my $filename = basename($file,('.c','.h','.cpp','.cc' ));
-	$filename = lc($filename);
-    	$self->{files}->{$filename} ||=[];
-    	push(@{$self->{files}->{$filename}},$file);
-
-	
-	
+  my ($self,$file) = @_;
+  my $filename = basename($file,('.c','.h','.cpp','.cc' ));
+  $filename = lc($filename);
+  $self->{files}->{$filename} ||=[];
+  push(@{$self->{files}->{$filename}},$file);
 }
 
 sub _get_files_module{
   my ($self, $module,$is_c_code) = @_;
-
-   my $module_lc;
-
-   if($is_c_code){
-	$module_lc = basename($module,('.c'));
-   }
-   $module_lc = lc($module); 
-   print(Dumper($module));
-   #print(Dumper($self->{files}));
+  my $module_lc;
+  if($is_c_code){
+    $module_lc = basename($module,('.c'));
+  }
+  $module_lc = lc($module);
    if(exists($self->{files}->{$module_lc})){
-	   my @implementations =   @{$self->{files}->{$module_lc}};
-	    foreach my $impl (@implementations) {
-	      $self->model->declare_module($module, $impl);
-	   }
+     my @implementations =   @{$self->{files}->{$module_lc}};
+     foreach my $impl (@implementations) {
+        $self->model->declare_module($module, $impl);
+     }
   }
 }
-
 
 1;
