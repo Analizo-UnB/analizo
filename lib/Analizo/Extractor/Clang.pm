@@ -60,45 +60,44 @@ sub _visit_node($$$) {
 }
 
 sub manager_cpp_files{
-        my ($self,$node,$file,$name,$kind) = @_;
+  my ($self,$node,$file,$name,$kind) = @_;
 	if ($kind eq 'ClassDecl') {
-	      $self->current_module($name);
-	      $self->_get_files_module($name);
-	      _find_children_by_kind($node, 'C++ base class specifier',
-		sub {
-		  my ($child) = @_;
-		  my $superclass = $child->spelling;
-		  $superclass =~ s/class //; # FIXME should follow the reference to the actual class node instead
-		  if (! grep { $_ eq $superclass } $self->model->inheritance($name)) {
-		    $self->model->add_inheritance($name, $superclass);
-		  }
-		}
-	      );
-	      _find_children_by_kind($node, 'CXXMethod',
-		sub {
-		  my ($child) = @_;
-		  my $method = $child->spelling;
-		  $self->model->declare_function($name, $method, $method);
-		  if($child->is_pure_virtual && !(grep {$self->current_module eq  $_ }($self->model->abstract_classes))) {
-              		$self->model->add_abstract_class($self->current_module);
-                  }
-		}
-	      );
-	      _find_children_by_kind($node, 'FieldDecl',
-		sub {
-		  my ($child) = @_;
-		  my $variable = $child->spelling;
-		  $self->model->declare_variable($name, $variable, $variable);
-		}
-	      );
-	    }
+      $self->current_module($name);
+      $self->_get_files_module($name);
+      _find_children_by_kind($node, 'C++ base class specifier',
+    		sub {
+    		  my ($child) = @_;
+    		  my $superclass = $child->spelling;
+    		  $superclass =~ s/class //; # FIXME should follow the reference to the actual class node instead
+    		  if (! grep { $_ eq $superclass } $self->model->inheritance($name)) {
+    		    $self->model->add_inheritance($name, $superclass);
+    		  }
+    		}
+      );
+      _find_children_by_kind($node, 'CXXMethod',
+    		sub {
+    		  my ($child) = @_;
+    		  my $method = $child->spelling;
+    		  $self->model->declare_function($name, $method, $method);
+    		  if($child->is_pure_virtual && !(grep {$self->current_module eq  $_ }($self->model->abstract_classes))) {
+              $self->model->add_abstract_class($self->current_module);
+          }
+    		}
+      );
+      _find_children_by_kind($node, 'FieldDecl',
+    		sub {
+    		  my ($child) = @_;
+    		  my $variable = $child->spelling;
+    		  $self->model->declare_variable($name, $variable, $variable);
+    		}
+      );
+    }
 
-	    #when it is a cpp file but it is not a class as the main.cpp file
-	    if( $kind eq 'FunctionDecl'){
+    #when it is a cpp file but it is not a class as the main.cpp file
+    if( $kind eq 'FunctionDecl'){
 			$self->model->declare_module($name);
 			$self->_get_files_module($name);
-	    }
-
+    }
 }
 
 
@@ -140,16 +139,15 @@ sub manager_c_files{
 	      );
 
 	      _find_children_by_kind($node, 'VarDecl',
-		sub {
-		  my ($child) = @_;
-		  my $variable = $child->spelling;
-		  my ($child_file) = $child->location;
-		  return if ($child_file ne $name);
-		  $self->model->declare_variable($module_name, $variable, $variable);
-		}
+      		sub {
+      		  my ($child) = @_;
+      		  my $variable = $child->spelling;
+      		  my ($child_file) = $child->location;
+      		  return if ($child_file ne $name);
+      		  $self->model->declare_variable($module_name, $variable, $variable);
+      		}
 	      );
     }
-
 }
 
 sub update_method_name {
