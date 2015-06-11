@@ -45,8 +45,16 @@ my $extractor7 = Analizo::Extractor->load('Clang');
 $extractor7->process('t/samples/parameter/');
 my $cpp_hello_world = $extractor7->model;
 
+my $extractor8 = Analizo::Extractor->load('Clang');
+$extractor8->process('t/samples/clang_parser/');
+my $clang = $extractor8->model;
+
+my $extractordoxyparse2 = Analizo::Extractor->load('Doxyparse');
+$extractordoxyparse2->process('t/samples/clang_parser/');
+my $persondoxyparse = $extractordoxyparse2->model;
+
 print(Dumper($animals)); # FIXME remove this
-print(Dumper($hello_world)); # FIXME remove this
+print(Dumper($persondoxyparse)); # FIXME remove this
 
 sub cpp_classes : Tests {
   my @expected = qw(Animal Cat Dog Mammal main);
@@ -122,13 +130,13 @@ sub current_file : Tests{
 }
 
 sub cpp_methods : Test {
-  my @expected = qw(name);
+  my @expected = qw(Animal::name);
   my $got = $animals->{modules}->{Animal}->{functions};
   is_deeply($got, \@expected);
 }
 
 sub cpp_variables : Test {
-  my @expected = qw(_name);
+  my @expected = qw(Cat::_name);
   my $got = $animals->{modules}->{Cat}->{variables};
   is_deeply($got, \@expected);
 }
@@ -170,6 +178,7 @@ sub update_method_name : Tests {
   is($got, $expected,"qualified name");
 }
 
+
 sub conditional_paths : Tests {
   my @expected = qw(1 1 1);
   my @got = sort(values(%{$hello_world3->{conditional_paths}}));
@@ -179,10 +188,19 @@ sub conditional_paths : Tests {
   @got = sort(values(%{$conditionals_c->{conditional_paths}}));
   is_deeply(\@got, \@expected,"conditionals c folder conditional paths");
 
-  @expected = qw(3);
+  @expected = qw(1 3);
   @got = sort(values(%{$conditionals_cpp->{conditional_paths}}));
   is_deeply(\@got, \@expected,"conditionals cpp folder conditional paths");
 }
+
+
+sub method_protection : Test {
+  my @expected = ("public") x 5;
+  my @got = values %{$clang->{protection}};
+
+  is_deeply(\@got, \@expected, 'protection for person methods');
+}
+ 
 
 
 # TODO - based on functionality from doxyparse extractor

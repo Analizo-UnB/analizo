@@ -70,21 +70,37 @@ sub manager_cpp_files{
       $self->current_module($name);
       $self->_get_files_module($name);
       _find_children_by_kind($node, 'C++ base class specifier',
-            sub {
-              my ($child) = @_;
-              my $superclass = $child->spelling;
-              $superclass =~ s/class //; # FIXME should follow the reference to the actual class node instead
-              if (! grep { $_ eq $superclass } $self->model->inheritance($name)) {
-                $self->model->add_inheritance($name, $superclass);
-              }
-            }
+        sub {
+          my ($child) = @_;
+          my $superclass = $child->spelling;
+          $superclass =~ s/class //; # FIXME should follow the reference to the actual class node instead
+          if (! grep { $_ eq $superclass } $self->model->inheritance($name)) {
+            $self->model->add_inheritance($name, $superclass);
+          }
+        }
       );
-      _find_children_by_kind($node, 'CXXMethod',
+      _find_children_by_kind($node, 'CXXConstructor',
         sub {
           my ($child) = @_;
           my $method = $child->spelling;
-          $self->model->declare_function($name, $method, $method);
+          my $access = $child->access_specifier;
+
           $self->{current_member} = $method;
+          $self->identify_conditional_path(); 
+          $self->model->declare_function($name, qualified_name($name, $method));
+          $self->model->add_protection(qualified_name($name,$method),$access) if $access eq 'public';
+        }
+      );
+
+      _find_children_by_kind($node, 'CXXMethod',
+        sub {
+          my ($child) = @_;
+          my $method = qualified_name($self->current_module,$child->spelling);
+          my $access = $child->access_specifier;
+          $self->{current_member} = $method;
+        
+          $self->model->declare_function($name, $method);
+          $self->model->add_protection($method,$access) if $access eq 'public';
           $self->identify_conditional_path();
 
           if($child->is_pure_virtual && !(grep {$self->current_module eq  $_ }($self->model->abstract_classes))) {
@@ -97,19 +113,26 @@ sub manager_cpp_files{
         }
       );
       _find_children_by_kind($node, 'FieldDecl',
-            sub {
-              my ($child) = @_;
-              my $variable = $child->spelling;
-              $self->model->declare_variable($name, $variable, $variable);
+        sub {
+          my ($child) = @_;
+          my $variable = qualified_name($self->current_module,$child->spelling);
+          $self->model->declare_variable($name, $variable, $variable);
           $self->{current_member} = $variable;
-            }
+        }
       );
     }
 
     #when it is a cpp file but it is not a class, as the main.cpp file
     if( $kind eq 'FunctionDecl'){
-            $self->model->declare_module($name);
-            $self->_get_files_module($name);
+      my $module = $self->_get_basename($file); 
+      my $access = $node->access_specifier;
+      $access =  $access eq 'invalid' ? 'public': $access;
+
+      $self->current_module($module);
+      $self->model->declare_function($module, qualified_name($module, $name));
+
+      $self->_get_files_module($module);
+      $self->model->add_protection(qualified_name($module, $name), $access);
     }
 }
 
@@ -182,9 +205,15 @@ sub _find_children_by_kind($$$) {
   }
 }
 
+sub _get_basename{
+  my ($self, $file) = @_;
+  my $filename = basename($file,('.c','.h','.cpp','.cc' ));
+  return $filename;
+}
+
 sub add_file{
   my ($self,$file) = @_;
-  my $filename = basename($file,('.c','.h','.cpp','.cc' ));
+  my $filename = $self->_get_basename($file);
   $filename = lc($filename);
   $self->{files}->{$filename} ||=[];
   push(@{$self->{files}->{$filename}},$file);
@@ -194,7 +223,7 @@ sub _get_files_module{
   my ($self, $module,$is_c_code) = @_;
   my $module_lc;
   if($is_c_code){
-    $module_lc = basename($module,('.c'));
+    $module_lc = $self->_get_basename($module);
   }
   $module_lc = lc($module);
    if(exists($self->{files}->{$module_lc})){
