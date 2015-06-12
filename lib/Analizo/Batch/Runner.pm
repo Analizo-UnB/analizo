@@ -7,10 +7,10 @@ sub new {
   return bless { @args }, $class;
 }
 
-sub run($$$) {
-  my ($self, $batch, $output) = @_;
+sub run($$$$) {
+  my ($self, $batch, $output, $opt) = @_;
   $output->initialize();
-  $self->actually_run($batch, $output);
+  $self->actually_run($batch, $output, $opt);
   $output->flush();
 }
 

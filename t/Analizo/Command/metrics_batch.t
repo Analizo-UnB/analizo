@@ -22,4 +22,13 @@ sub is_a_subclass_of_Analizo_Command : Tests {
   isa_ok($cmd, 'Analizo::Command');
 }
 
+sub testing_functionality_of_extractor_and_language_apply : Tests {
+	my $job = mock(new Analizo::Batch::Job::Directories);
+	my $analizo = Analizo->new;
+	my ($cmd) = $analizo->prepare_command('metrics-batch');
+	my $job_function = $cmd->extractor_and_language_apply(my $opt,$job);
+	ok($job == $job_function);
+	isa_ok($job_function, 'Analizo::Batch::Job::Directories');
+}
+
 __PACKAGE__->runtests;

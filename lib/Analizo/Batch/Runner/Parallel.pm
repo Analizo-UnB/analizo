@@ -18,8 +18,8 @@ sub parallelism {
 }
 
 sub actually_run {
-  my ($self, $batch, $output) = @_;
-  $self->start_workers();
+  my ($self, $batch, $output, $opt) = @_;
+  $self->start_workers($opt);
   $self->coordinate_workers($batch, $output);
   $self->wait_for_workers();
 }
@@ -30,7 +30,7 @@ sub _socket_spec {
 }
 
 sub start_workers {
-  my ($self) = @_;
+  my ($self, $opt) = @_;
   $self->{workers} = [];
   my $n = $self->parallelism();
   my $ppid = $$;
@@ -42,7 +42,7 @@ sub start_workers {
     } else {
       # on child
       $0 = '[analizo worker]';
-      worker($ppid);
+      worker($ppid, $opt);
       exit();
     }
   }
@@ -126,7 +126,7 @@ sub distributor {
 }
 
 sub worker {
-  my ($parent_pid) = @_;
+  my ($parent_pid, $opt) = @_;
   my $context = ZeroMQ::Context->new();
   my $source = $context->socket(ZMQ_REQ);
   $source->connect(_socket_spec('job_source', $parent_pid));
@@ -141,6 +141,9 @@ sub worker {
     if (exists($job->{id})) {
       $last_job = $job;
       $job->parallel_prepare();
+      if($opt) {
+        $job = Analizo::Command::metrics_batch->extractor_and_language_apply($opt,$job);
+      }
       $job->execute();
       $results->send(Dump($job));
     } else {
