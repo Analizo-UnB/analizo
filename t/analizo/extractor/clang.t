@@ -33,6 +33,14 @@ my $extractor4 = Analizo::Extractor->load('Clang');
 $extractor4->process('t/samples/animails/cpp/main.cc');
 my $main_model = $extractor4->model;
 
+my $extractor5 = Analizo::Extractor->load('Clang');
+$extractor5->process('t/samples/conditionals/c');
+my $conditionals_c = $extractor5->model;
+
+my $extractor6 = Analizo::Extractor->load('Clang');
+$extractor6->process('t/samples/conditionals/cpp');
+my $conditionals_cpp = $extractor6->model;
+
 print(Dumper($animals)); # FIXME remove this
 print(Dumper($hello_world)); # FIXME remove this
 
@@ -128,6 +136,9 @@ sub c_functions : Tests {
 
   my $main_functions = $hello_world->{modules}->{main}->{functions};
   is_deeply($main_functions, ['main'], 'functions in main module');
+
+  $main_functions = $conditionals_c->{modules}->{cc2}->{functions};
+  is_deeply($main_functions, ['cc2'], 'functions in cc2 module');
 }
 
 sub c_function_parameters : Tests {
@@ -145,9 +156,24 @@ sub c_global_variables : Tests {
 
 sub update_method_name : Tests {
   my $expected = "file::method";
-  my $got = Analizo::Extractor::Clang::update_method_name("file","method");
-  is($got, $expected,"Update method name");
+  my $got = Analizo::Extractor::Clang::qualified_name("file","method");
+  is($got, $expected,"qualified name");
 }
+
+sub conditional_paths : Tests {
+  my @expected = qw(1 1 1);
+  my @got = sort(values(%{$hello_world3->{conditional_paths}}));
+  is_deeply(\@got, \@expected,"hello world conditional paths");
+
+  @expected = qw(1 2 3 4 5);
+  @got = sort(values(%{$conditionals_c->{conditional_paths}}));
+  is_deeply(\@got, \@expected,"conditionals c folder conditional paths");
+
+  @expected = qw(3);
+  @got = sort(values(%{$conditionals_cpp->{conditional_paths}}));
+  is_deeply(\@got, \@expected,"conditionals cpp folder conditional paths");
+}
+
 
 # TODO - based on functionality from doxyparse extractor
 #

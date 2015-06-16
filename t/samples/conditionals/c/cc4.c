@@ -1,9 +1,9 @@
 void cc4() {
-  if (something) {
+  if (0) {
     printf("ok\n");
   } else {
-    if (otherthing) {
-      if (someotherthing) {
+    if (1) {
+      if (0) {
         printf("don't know\n");
       } else {
         printf("me neither\n");
