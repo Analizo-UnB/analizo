@@ -24,7 +24,7 @@ sub actually_process($@) {
   }
 
   for my $file(@input){
-	$self->add_file($file);
+    $self->add_file($file);
   }
 
   for my $file (@input) {
@@ -48,10 +48,10 @@ sub _visit_node($$$) {
     }
 
     if($is_c_code){
-	$self->manager_c_files($node,$file,$name,$kind);
+    $self->manager_c_files($node,$file,$name,$kind);
     }else{
 
-	$self->manager_cpp_files($node,$file,$name,$kind);
+    $self->manager_cpp_files($node,$file,$name,$kind);
     }
 
     if ($kind eq 'IfStmt'|| $kind eq 'CaseStmt') {
@@ -60,52 +60,65 @@ sub _visit_node($$$) {
 
     my $children = $node->children;
     foreach my $child(@$children){
-	$self->_visit_node($child,$is_c_code);
+    $self->_visit_node($child,$is_c_code);
     }
 }
 
 sub manager_cpp_files{
   my ($self,$node,$file,$name,$kind) = @_;
-	if ($kind eq 'ClassDecl') {
+    if ($kind eq 'ClassDecl') {
       $self->current_module($name);
       $self->_get_files_module($name);
       _find_children_by_kind($node, 'C++ base class specifier',
-    		sub {
-    		  my ($child) = @_;
-    		  my $superclass = $child->spelling;
-    		  $superclass =~ s/class //; # FIXME should follow the reference to the actual class node instead
-    		  if (! grep { $_ eq $superclass } $self->model->inheritance($name)) {
-    		    $self->model->add_inheritance($name, $superclass);
-    		  }
-    		}
+            sub {
+              my ($child) = @_;
+              my $superclass = $child->spelling;
+              $superclass =~ s/class //; # FIXME should follow the reference to the actual class node instead
+              if (! grep { $_ eq $superclass } $self->model->inheritance($name)) {
+                $self->model->add_inheritance($name, $superclass);
+              }
+            }
       );
       _find_children_by_kind($node, 'CXXMethod',
-    		sub {
-    		  my ($child) = @_;
-    		  my $method = $child->spelling;
-    		  $self->model->declare_function($name, $method, $method);
+        sub {
+          my ($child) = @_;
+          my $method = $child->spelling;
+          $self->model->declare_function($name, $method, $method);
           $self->{current_member} = $method;
           $self->identify_conditional_path();
 
-    		  if($child->is_pure_virtual && !(grep {$self->current_module eq  $_ }($self->model->abstract_classes))) {
+          if($child->is_pure_virtual && !(grep {$self->current_module eq  $_ }($self->model->abstract_classes))) {
               $self->model->add_abstract_class($self->current_module);
           }
-    		}
+
+          _find_children_by_kind($child, 'ParmDecl',
+            sub{
+                my($child_of_node) = @_;
+                my $parameter = $child_of_node->spelling;
+                    if($file =~ /.h$/){
+                        return;
+                    }
+                my $num_parameters = $child->num_arguments();
+                my $function_name = qualified_name($self->current_module,$child->spelling);
+                $self->model->add_parameters($function_name, $num_parameters);
+            }
+          );
+        }
       );
       _find_children_by_kind($node, 'FieldDecl',
-    		sub {
-    		  my ($child) = @_;
-    		  my $variable = $child->spelling;
-    		  $self->model->declare_variable($name, $variable, $variable);
+            sub {
+              my ($child) = @_;
+              my $variable = $child->spelling;
+              $self->model->declare_variable($name, $variable, $variable);
           $self->{current_member} = $variable;
-    		}
+            }
       );
     }
 
     #when it is a cpp file but it is not a class, as the main.cpp file
     if( $kind eq 'FunctionDecl'){
-			$self->model->declare_module($name);
-			$self->_get_files_module($name);
+            $self->model->declare_module($name);
+            $self->_get_files_module($name);
     }
 }
 
@@ -113,47 +126,45 @@ sub manager_c_files{
       my ($self,$node,$file,$name,$kind) = @_;
 
       if ($kind eq 'TranslationUnit') {
-	      my $module_name = basename($name,(".c",".h"));
-	      $self->current_module($module_name);
-	      $module_name =~ s/\.\w+$//;
-	      $self->_get_files_module($module_name,1);
-	      _find_children_by_kind($node, 'FunctionDecl',
-      		sub {
-      		  my ($child) = @_;
-      		  my $function = $child->spelling;
-      		  my ($child_file) = $child->location;
-      		  return if ($child_file ne $name);
-      		  $self->model->declare_function($module_name, $function);
+          my $module_name = basename($name,(".c",".h"));
+          $self->current_module($module_name);
+          $module_name =~ s/\.\w+$//;
+          $self->_get_files_module($module_name,1);
+          _find_children_by_kind($node, 'FunctionDecl',
+            sub {
+              my ($child) = @_;
+              my $function = $child->spelling;
+              my ($child_file) = $child->location;
+              return if ($child_file ne $name);
+              $self->model->declare_function($module_name, $function);
             $self->{current_member} = $function;
             $self->identify_conditional_path();
 
-      		  _find_children_by_kind($child, 'ParmDecl',
-      		    sub{
-          			my($child_of_node) = @_;
-          			my $parameter = $child_of_node->spelling;
-          				if($file =~ /.h$/){
-          					return;
-          				}
-          			my $num_parameters = $self->model->{parameters}->{$name};
-          			my $function_name = qualified_name($self->current_module,$child->spelling);
-          			$num_parameters = ($num_parameters == undef)?1:$num_parameters+1;
+              _find_children_by_kind($child, 'ParmDecl',
+                sub{
+                    my($child_of_node) = @_;
+                    my $parameter = $child_of_node->spelling;
+                        if($file =~ /.h$/){
+                            return;
+                        }
+                    my $num_parameters = $child->num_arguments();
+                    my $function_name = qualified_name($self->current_module,$child->spelling);
+                    $self->model->add_parameters($function_name, $num_parameters);
+                }
+              );
+            }
+          );
 
-          			$self->model->add_parameters($function_name, $num_parameters);
-      		    }
-      		  );
-      		}
-	      );
-
-	      _find_children_by_kind($node, 'VarDecl',
-      		sub {
-      		  my ($child) = @_;
-      		  my $variable = $child->spelling;
-      		  my ($child_file) = $child->location;
-      		  return if ($child_file ne $name);
-      		  $self->model->declare_variable($module_name, $variable, $variable);
+          _find_children_by_kind($node, 'VarDecl',
+            sub {
+              my ($child) = @_;
+              my $variable = $child->spelling;
+              my ($child_file) = $child->location;
+              return if ($child_file ne $name);
+              $self->model->declare_variable($module_name, $variable, $variable);
             $self->{current_member} = $variable;
-      		}
-	      );
+            }
+          );
       }
 }
 
