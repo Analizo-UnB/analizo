@@ -41,6 +41,10 @@ my $extractor6 = Analizo::Extractor->load('Clang');
 $extractor6->process('t/samples/conditionals/cpp');
 my $conditionals_cpp = $extractor6->model;
 
+my $extractor7 = Analizo::Extractor->load('Clang');
+$extractor7->process('t/samples/parameter/');
+my $cpp_hello_world = $extractor7->model;
+
 print(Dumper($animals)); # FIXME remove this
 print(Dumper($hello_world)); # FIXME remove this
 
@@ -146,6 +150,12 @@ sub c_function_parameters : Tests {
     my $got = $hello_world->{parameters}->{'hello_world::hello_world_say'};
 
     is($got, $expected,"parameters in hello_world_say");
+}
+
+sub cpp_function_parameters : Tests {
+    my $expected = 4;
+    my $got = $cpp_hello_world->{parameters}->{'HelloWorld::foo'};
+    is($got, $expected,"parameters in foo");
 }
 
 sub c_global_variables : Tests {
