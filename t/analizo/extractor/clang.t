@@ -54,7 +54,9 @@ $extractordoxyparse2->process('t/samples/clang_parser/');
 my $persondoxyparse = $extractordoxyparse2->model;
 
 print(Dumper($animals)); # FIXME remove this
-print(Dumper($persondoxyparse)); # FIXME remove this
+print(Dumper($hello_world)); # FIXME remove this
+print(Dumper($doxyparsemodel)); # FIXME remove this
+
 
 sub cpp_classes : Tests {
   my @expected = qw(Animal Cat Dog Mammal main);
@@ -142,15 +144,14 @@ sub cpp_variables : Test {
 }
 
 sub c_functions : Tests {
-  my @expected = qw(hello_world_destroy hello_world_new hello_world_say);
+  my @expected = qw(hello_world::hello_world_destroy hello_world::hello_world_new hello_world::hello_world_say);
   my @got = sort(@{$hello_world->{modules}->{hello_world}->{functions}});
   is_deeply(\@got, \@expected, 'functions in hello_world module');
 
   my $main_functions = $hello_world->{modules}->{main}->{functions};
-  is_deeply($main_functions, ['main'], 'functions in main module');
 
-  $main_functions = $conditionals_c->{modules}->{cc2}->{functions};
-  is_deeply($main_functions, ['cc2'], 'functions in cc2 module');
+  is_deeply($main_functions, ['main::main'], 'functions in main module');
+
 }
 
 sub c_function_parameters : Tests {

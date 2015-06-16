@@ -140,45 +140,41 @@ sub manager_c_files{
       my ($self,$node,$file,$name,$kind) = @_;
 
       if ($kind eq 'TranslationUnit') {
-          my $module_name = basename($name,(".c",".h"));
-          $self->current_module($module_name);
-          $module_name =~ s/\.\w+$//;
-          $self->_get_files_module($module_name,1);
-          _find_children_by_kind($node, 'FunctionDecl',
-            sub {
-              my ($child) = @_;
-              my $function = $child->spelling;
-              my ($child_file) = $child->location;
-              return if ($child_file ne $name);
-              $self->model->declare_function($module_name, $function);
-            $self->{current_member} = $function;
-            $self->identify_conditional_path();
+      my $module_name = $self->_get_basename($name);
+      $self->current_module($module_name);
+      $self->_get_files_module($module_name,1);
+      _find_children_by_kind($node, 'FunctionDecl',
+  		sub {
+  		  my ($child) = @_;
+  		  my $function = $child->spelling;
+  		  my $access = $node->access_specifier;
+   		  my ($child_file) = $child->location;
 
-              _find_children_by_kind($child, 'ParmDecl',
-                sub{
-                    my($child_of_node) = @_;
-                    my $parameter = $child_of_node->spelling;
-                        if($file =~ /.h$/){
-                            return;
-                        }
-                    my $num_parameters = $child->num_arguments();
-                    my $function_name = qualified_name($self->current_module,$child->spelling);
-                    $self->model->add_parameters($function_name, $num_parameters);
-                }
-              );
-            }
-          );
+  		  return if ($child_file ne $name);
 
-          _find_children_by_kind($node, 'VarDecl',
-            sub {
-              my ($child) = @_;
-              my $variable = $child->spelling;
-              my ($child_file) = $child->location;
-              return if ($child_file ne $name);
-              $self->model->declare_variable($module_name, $variable, $variable);
-            $self->{current_member} = $variable;
-            }
-          );
+  		  $self->{current_member} = $function;
+    	  $self->identify_conditional_path();
+
+  		  $access =  $access eq 'invalid' ? 'public': $access;
+  		  $self->model->declare_function($module_name, qualified_name($module_name, $function));
+  		  $self->model->add_protection(qualified_name($module_name, $function), $access);
+
+        my $num_parameters = $child->num_arguments();
+        my $function_name = qualified_name($self->current_module,$child->spelling);
+        $self->model->add_parameters($function_name, $num_parameters); 
+  		}
+	      );
+
+	      _find_children_by_kind($node, 'VarDecl',
+      		sub {
+      		  my ($child) = @_;
+      		  my $variable = $child->spelling;
+      		  my ($child_file) = $child->location;
+      		  return if ($child_file ne $name);
+      		  $self->model->declare_variable($module_name, $variable, $variable);
+            	  $self->{current_member} = $variable;
+      		}
+	      );
       }
 }
 
