@@ -91,18 +91,9 @@ sub manager_cpp_files{
               $self->model->add_abstract_class($self->current_module);
           }
 
-          _find_children_by_kind($child, 'ParmDecl',
-            sub{
-                my($child_of_node) = @_;
-                my $parameter = $child_of_node->spelling;
-                    if($file =~ /.h$/){
-                        return;
-                    }
-                my $num_parameters = $child->num_arguments();
-                my $function_name = qualified_name($self->current_module,$child->spelling);
-                $self->model->add_parameters($function_name, $num_parameters);
-            }
-          );
+          my $num_parameters = $child->num_arguments();
+          my $function_name = qualified_name($self->current_module,$child->spelling);
+          $self->model->add_parameters($function_name, $num_parameters);
         }
       );
       _find_children_by_kind($node, 'FieldDecl',
