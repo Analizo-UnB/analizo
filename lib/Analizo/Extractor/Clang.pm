@@ -1,13 +1,13 @@
 package Analizo::Extractor::Clang;
 
 use strict;
-
-use base qw(Analizo::Extractor);
+use warnings;
 
 use File::Basename;
+use base qw(Analizo::Extractor);
+
 use Cwd;
 use Clang;
-use Data::Dumper;
 
 sub new {
   my $package = shift;
@@ -23,177 +23,190 @@ sub actually_process($@) {
     $is_c_code = 0;
   }
 
-  for my $file(@input){
+  for my $file(@input) {
     $self->add_file($file);
   }
 
   for my $file (@input) {
-    #$self->add_file($file);
     my $tunit = $index->parse($file);
     my $node = $tunit->cursor;
+
     $self->_visit_node($node, $is_c_code);
   }
 }
 
 sub _visit_node($$$) {
-    my ($self, $node, $is_c_code) = @_;
+  my ($self, $node, $is_c_code) = @_;
 
-    my $name = $node->spelling;
-    my $kind = $node->kind->spelling;
-    my ($file, $line, $column) = $node->location();
+  my $name = $node->spelling;
+  my $kind = $node->kind->spelling;
+  my $children = $node->children;
+  my ($file, $line, $column) = $node->location();
 
-    # FIXME find other way of skipping nodes outside of the analyzed tree?
-    if ($file =~ m/^\/usr/) {
-        return;
-    }
+  # FIXME find other way of skipping nodes outside of the analyzed tree?
+  if ($file =~ m/^\/usr/) {
+    return;
+  }
 
-    if($is_c_code){
+  if($is_c_code) {
     $self->manager_c_files($node,$file,$name,$kind);
-    }else{
-
+  } else {
     $self->manager_cpp_files($node,$file,$name,$kind);
-    }
+  }
 
-    if ($kind eq 'IfStmt'|| $kind eq 'CaseStmt') {
-      $self->identify_conditional_path();
-    }
+  if ($kind eq 'IfStmt'|| $kind eq 'CaseStmt') {
+    $self->identify_conditional_path();
+  }
 
-    my $children = $node->children;
-    foreach my $child(@$children){
+  foreach my $child(@$children) {
     $self->_visit_node($child,$is_c_code);
-    }
+  }
 }
 
-sub manager_cpp_files{
+sub manager_cpp_files {
   my ($self,$node,$file,$name,$kind) = @_;
-    if ($kind eq 'ClassDecl') {
-      $self->current_module($name);
-      $self->_get_files_module($name);
-      _find_children_by_kind($node, 'C++ base class specifier',
-        sub {
-          my ($child) = @_;
-          my $superclass = $child->spelling;
-          $superclass =~ s/class //; # FIXME should follow the reference to the actual class node instead
-          if (! grep { $_ eq $superclass } $self->model->inheritance($name)) {
-            $self->model->add_inheritance($name, $superclass);
-          }
+
+  if ($kind eq 'ClassDecl') {
+    $self->current_module($name);
+    $self->_get_files_module($name);
+
+    _find_children_by_kind ($node, 'C++ base class specifier',
+      sub {
+        my ($child) = @_;
+        my $superclass = $child->spelling;
+
+        $superclass =~ s/class //; # FIXME should follow the reference to the actual class node instead
+
+        if (!grep {$_ eq $superclass} $self->model->inheritance($name)) {
+          $self->model->add_inheritance($name, $superclass);
         }
-      );
-      _find_children_by_kind($node, 'CXXConstructor',
-        sub {
-          my ($child) = @_;
-          my $method = $child->spelling;
-          my $access = $child->access_specifier;
+      }
+    );
 
-          $self->{current_member} = $method;
-          $self->identify_conditional_path(); 
-          $self->model->declare_function($name, qualified_name($name, $method));
-          $self->model->add_protection(qualified_name($name,$method),$access) if $access eq 'public';
+    _find_children_by_kind ($node, 'CXXConstructor',
+      sub {
+        my ($child) = @_;
+        my $method = $child->spelling;
+        my $access = $child->access_specifier;
+
+        $self->{current_member} = $method;
+        $self->identify_conditional_path(); 
+        $self->model->declare_function($name, qualified_name($name, $method));
+        $self->model->add_protection(qualified_name($name,$method),$access) if $access eq 'public';
+      }
+    );
+
+    _find_children_by_kind ($node, 'CXXMethod',
+      sub {
+        my ($child) = @_;
+        my $access = $child->access_specifier;
+        my $num_parameters = $child->num_arguments();
+        my $method = qualified_name($self->current_module,$child->spelling);
+        my $function_name = qualified_name($self->current_module,$child->spelling);
+
+        $self->{current_member} = $method;
+        $self->model->declare_function($name, $method);
+        $self->model->add_protection($method,$access) if $access eq 'public';
+        $self->identify_conditional_path();
+
+        if ($child->is_pure_virtual && !(grep {$self->current_module eq  $_ }($self->model->abstract_classes))) {
+          $self->model->add_abstract_class($self->current_module);
         }
-      );
 
-      _find_children_by_kind($node, 'CXXMethod',
-        sub {
-          my ($child) = @_;
-          my $method = qualified_name($self->current_module,$child->spelling);
-          my $access = $child->access_specifier;
-          $self->{current_member} = $method;
-        
-          $self->model->declare_function($name, $method);
-          $self->model->add_protection($method,$access) if $access eq 'public';
-          $self->identify_conditional_path();
+        $self->model->add_parameters($function_name, $num_parameters);
+      }
+    );
 
-          if($child->is_pure_virtual && !(grep {$self->current_module eq  $_ }($self->model->abstract_classes))) {
-              $self->model->add_abstract_class($self->current_module);
-          }
+    _find_children_by_kind ($node, 'FieldDecl',
+      sub {
+        my ($child) = @_;
+        my $variable = qualified_name($self->current_module,$child->spelling);
 
-          my $num_parameters = $child->num_arguments();
-          my $function_name = qualified_name($self->current_module,$child->spelling);
-          $self->model->add_parameters($function_name, $num_parameters);
-        }
-      );
-      _find_children_by_kind($node, 'FieldDecl',
-        sub {
-          my ($child) = @_;
-          my $variable = qualified_name($self->current_module,$child->spelling);
-          $self->model->declare_variable($name, $variable, $variable);
-          $self->{current_member} = $variable;
-        }
-      );
-    }
+        $self->model->declare_variable($name, $variable, $variable);
+        $self->{current_member} = $variable;
+      }
+    );
+  }
 
-    #when it is a cpp file but it is not a class, as the main.cpp file
-    if( $kind eq 'FunctionDecl'){
-      my $module = $self->_get_basename($file); 
-      my $access = $node->access_specifier;
-      $access =  $access eq 'invalid' ? 'public': $access;
+  #when it is a cpp file but it is not a class, as the main.cpp file
+  if ($kind eq 'FunctionDecl') {
+    my $module = $self->_get_basename($file); 
+    my $access = $node->access_specifier;
+    $access =  $access eq 'invalid' ? 'public': $access;
 
-      $self->current_module($module);
-      $self->model->declare_function($module, qualified_name($module, $name));
+    $self->current_module($module);
+    $self->model->declare_function($module, qualified_name($module, $name));
 
-      $self->_get_files_module($module);
-      $self->model->add_protection(qualified_name($module, $name), $access);
-    }
+    $self->_get_files_module($module);
+    $self->model->add_protection(qualified_name($module, $name), $access);
+  }
 }
 
-sub manager_c_files{
-      my ($self,$node,$file,$name,$kind) = @_;
+sub manager_c_files {
+  my ($self,$node,$file,$name,$kind) = @_;
 
-      if ($kind eq 'TranslationUnit') {
-      my $module_name = $self->_get_basename($name);
-      $self->current_module($module_name);
-      $self->_get_files_module($module_name,1);
-      _find_children_by_kind($node, 'FunctionDecl',
-  		sub {
-  		  my ($child) = @_;
-  		  my $function = $child->spelling;
-  		  my $access = $node->access_specifier;
-   		  my ($child_file) = $child->location;
+  if ($kind eq 'TranslationUnit') {
+    my $module_name = $self->_get_basename($name);
 
-  		  return if ($child_file ne $name);
+    $self->current_module($module_name);
+    $self->_get_files_module($module_name,1);
 
-  		  $self->{current_member} = $function;
-    	  $self->identify_conditional_path();
-
-  		  $access =  $access eq 'invalid' ? 'public': $access;
-  		  $self->model->declare_function($module_name, qualified_name($module_name, $function));
-  		  $self->model->add_protection(qualified_name($module_name, $function), $access);
-
+    _find_children_by_kind($node, 'FunctionDecl',
+      sub {
+        my ($child) = @_;
+        my $function = $child->spelling;
+        my $access = $node->access_specifier;
+        my ($child_file) = $child->location;
         my $num_parameters = $child->num_arguments();
         my $function_name = qualified_name($self->current_module,$child->spelling);
-        $self->model->add_parameters($function_name, $num_parameters); 
-  		}
-	      );
 
-	      _find_children_by_kind($node, 'VarDecl',
-      		sub {
-      		  my ($child) = @_;
-      		  my $variable = $child->spelling;
-      		  my ($child_file) = $child->location;
-      		  return if ($child_file ne $name);
-      		  $self->model->declare_variable($module_name, $variable, $variable);
-            	  $self->{current_member} = $variable;
-      		}
-	      );
+        return if ($child_file ne $name);
+
+        $self->{current_member} = $function;
+        $self->identify_conditional_path();
+
+        $access =  $access eq 'invalid' ? 'public': $access;
+        $self->model->declare_function($module_name, qualified_name($module_name, $function));
+        $self->model->add_protection(qualified_name($module_name, $function), $access);
+
+        $self->model->add_parameters($function_name, $num_parameters); 
+	    }
+    );
+
+    _find_children_by_kind($node, 'VarDecl',
+      sub {
+        my ($child) = @_;
+        my $variable = $child->spelling;
+        my ($child_file) = $child->location;
+
+        return if ($child_file ne $name);
+
+        $self->model->declare_variable($module_name, $variable, $variable);
+        $self->{current_member} = $variable;
       }
+    );
+  }
 }
 
 sub identify_conditional_path {
   my($self) = @_;
   my $function_name = qualified_name($self->current_module,$self->current_member);
   my $num_paths = $self->model->{conditional_paths}->{$function_name};
-  $num_paths = ($num_paths == undef)?1:$num_paths+1;
+  
+  $num_paths = ($num_paths)?$num_paths+1:1;
   $self->model->add_conditional_paths($function_name, $num_paths);
 }
 
 sub qualified_name {
   my ($module, $method) = @_;
   my $final_name = "${module}::${method}";
+  
   return $final_name;
 }
 
 sub _find_children_by_kind($$$) {
   my ($node, $kind, $callback) = @_;
+  
   for my $child (@{$node->children}) {
     if ($child->kind->spelling eq $kind) {
       &$callback($child);
@@ -201,32 +214,38 @@ sub _find_children_by_kind($$$) {
   }
 }
 
-sub _get_basename{
+sub _get_basename {
   my ($self, $file) = @_;
   my $filename = basename($file,('.c','.h','.cpp','.cc' ));
+  
   return $filename;
 }
 
-sub add_file{
+sub add_file {
   my ($self,$file) = @_;
   my $filename = $self->_get_basename($file);
+  
   $filename = lc($filename);
   $self->{files}->{$filename} ||=[];
   push(@{$self->{files}->{$filename}},$file);
 }
 
-sub _get_files_module{
+sub _get_files_module {
   my ($self, $module,$is_c_code) = @_;
   my $module_lc;
+
   if($is_c_code){
     $module_lc = $self->_get_basename($module);
   }
+
   $module_lc = lc($module);
-   if(exists($self->{files}->{$module_lc})){
-     my @implementations =   @{$self->{files}->{$module_lc}};
-     foreach my $impl (@implementations) {
-        $self->model->declare_module($module, $impl);
-     }
+  
+  if(exists($self->{files}->{$module_lc})){
+    my @implementations = @{$self->{files}->{$module_lc}};
+    
+    foreach my $impl (@implementations) {
+       $self->model->declare_module($module, $impl);
+    }
   }
 }
 
