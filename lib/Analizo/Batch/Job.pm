@@ -127,6 +127,16 @@ sub execute {
   # extract model from source
   my $model_cache_key = "model://$tree_id";
   my $model = $self->cache->get($model_cache_key);
+
+  
+  my $language = ''; 
+  my @input = $self->_filter_files('.'); 
+  foreach my $file(@input){
+	if($file =~ /.*\.java/){
+		$language = "java";
+	}	
+  } 
+
   if (!defined $model) {
     $model = new Analizo::Model;
     my %options = (
@@ -134,6 +144,7 @@ sub execute {
       includedirs => $self->includedirs,
       libdirs => $self->libdirs,
       libs => $self->libs,
+      language => $language ? $language : undef
     );
     my @extractors = (
       Analizo::Extractor->load($self->extractor, %options),
@@ -141,7 +152,7 @@ sub execute {
     );
     for my $extractor (@extractors) {
       $self->share_filters_with($extractor);
-      $extractor->process('.');
+      $extractor->process(@input);
     }
     $self->cache->set($model_cache_key, $model);
   }
@@ -210,4 +221,23 @@ sub tree_id($) {
   return $id;
 }
 
+sub _filter_files{
+
+	my ($self, @input) = @_;
+
+	if($self->use_filters){
+		@input = $self->apply_filters(@input);
+	}
+	
+	return @input;
+}
+
+sub _find_files($){
+	
+}
+
+sub use_filters{
+
+	return 1;
+}
 1;

@@ -29,17 +29,21 @@ sub alias {
 }
 
 sub sanitize {
-  my ($extractor_name) = @_;
+  my ($extractor_name, %options) = @_;
+  my $language = $options{language} ? $options{language} : undef;
   if ($extractor_name && $extractor_name =~ /^\w+$/) {
     return $extractor_name;
   } else {
-    return 'Doxyparse';
+    if($language && $language eq "java"){
+    	return 'Doxyparse';
+    }
+	return "Clang";
   }
 }
 
 sub load {
   my ($self, $extractor_method, @options) = @_;
-  $extractor_method = alias(sanitize($extractor_method));
+  $extractor_method = alias(sanitize($extractor_method, @options));
   my $extractor = "Analizo::Extractor::$extractor_method";
 
   eval "use $extractor";
@@ -77,19 +81,16 @@ sub actually_process {
   # This method must be overriden by subclasses
 }
 
-# To disable filtering override this method returning false
-sub use_filters {
-  1;
-}
+
 
 sub process {
   my ($self, @input) = @_;
 
-  if ($self->use_filters) {
-    @input = $self->apply_filters(@input);
-  }
+  
   $self->actually_process(@input);
 }
+
+
 
 sub info {
   return if $QUIET;
