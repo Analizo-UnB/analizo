@@ -89,10 +89,10 @@ sub manager_cpp_files {
         my $method = $child->spelling;
         my $access = $child->access_specifier;
 
-        $self->{current_member} = $method;
+        $self->{current_member} = $child;
         $self->identify_conditional_path(); 
-        $self->model->declare_function($name, qualified_name($name, $method));
-        $self->model->add_protection(qualified_name($name,$method),$access) if $access eq 'public';
+        $self->model->declare_function($name, qualified_name($child));
+        $self->model->add_protection(qualified_name($child),$access) if $access eq 'public';
       }
     );
 
@@ -101,10 +101,10 @@ sub manager_cpp_files {
         my ($child) = @_;
         my $access = $child->access_specifier;
         my $num_parameters = $child->num_arguments();
-        my $method = qualified_name($self->current_module,$child->spelling);
-        my $function_name = qualified_name($self->current_module,$child->spelling);
+        my $method = qualified_name($child);
+        my $function_name = qualified_name($child);
 
-        $self->{current_member} = $method;
+        $self->{current_member} = $child;
         $self->model->declare_function($name, $method);
         $self->model->add_protection($method,$access) if $access eq 'public';
         $self->identify_conditional_path();
@@ -120,10 +120,10 @@ sub manager_cpp_files {
     _find_children_by_kind ($node, 'FieldDecl',
       sub {
         my ($child) = @_;
-        my $variable = qualified_name($self->current_module,$child->spelling);
+        my $variable = qualified_name($child);
 
         $self->model->declare_variable($name, $variable, $variable);
-        $self->{current_member} = $variable;
+        $self->{current_member} = $child;
       }
     );
   }
@@ -135,10 +135,10 @@ sub manager_cpp_files {
     $access =  $access eq 'invalid' ? 'public': $access;
 
     $self->current_module($module);
-    $self->model->declare_function($module, qualified_name($module, $name));
+    $self->model->declare_function($module, qualified_name($node));
 
     $self->_get_files_module($module);
-    $self->model->add_protection(qualified_name($module, $name), $access);
+    $self->model->add_protection(qualified_name($node), $access);
   }
 }
 
@@ -158,16 +158,16 @@ sub manager_c_files {
         my $access = $node->access_specifier;
         my ($child_file) = $child->location;
         my $num_parameters = $child->num_arguments();
-        my $function_name = qualified_name($self->current_module,$child->spelling);
+        my $function_name = qualified_name($child);
 
         return if ($child_file ne $name);
 
-        $self->{current_member} = $function;
+        $self->{current_member} = $child;
         $self->identify_conditional_path();
 
         $access =  $access eq 'invalid' ? 'public': $access;
-        $self->model->declare_function($module_name, qualified_name($module_name, $function));
-        $self->model->add_protection(qualified_name($module_name, $function), $access);
+        $self->model->declare_function($module_name, qualified_name($child));
+        $self->model->add_protection(qualified_name($child), $access);
 
         $self->model->add_parameters($function_name, $num_parameters); 
 	    }
@@ -182,7 +182,7 @@ sub manager_c_files {
         return if ($child_file ne $name);
 
         $self->model->declare_variable($module_name, $variable, $variable);
-        $self->{current_member} = $variable;
+        $self->{current_member} = $child;
       }
     );
   }
@@ -190,7 +190,7 @@ sub manager_c_files {
 
 sub identify_conditional_path {
   my($self) = @_;
-  my $function_name = qualified_name($self->current_module,$self->current_member);
+  my $function_name = qualified_name($self->current_member);
   my $num_paths = $self->model->{conditional_paths}->{$function_name};
   
   $num_paths = ($num_paths)?$num_paths+1:1;
@@ -198,8 +198,16 @@ sub identify_conditional_path {
 }
 
 sub qualified_name {
-  my ($module, $method) = @_;
-  my $final_name = "${module}::${method}";
+  my ($node) = @_;
+  my @matches = ($node->USR() =~ m/@(\w+)/g);
+  my $final_name;
+
+  if ($matches[0] eq "C"){
+    $final_name = $matches[1]."::".$matches[3];
+  }
+  else{
+    $final_name = $matches[1];  
+  }
   
   return $final_name;
 }
