@@ -7,6 +7,7 @@ use warnings;
 use Data::Dumper;
 
 use Analizo::Extractor::Clang;
+use Analizo::Batch::Job::Directories;
 
 # print(Dumper($animals)); # FIXME remove this
 # print(Dumper($hello_world)); # FIXME remove this
@@ -14,8 +15,9 @@ use Analizo::Extractor::Clang;
 
 
 sub cpp_classes : Tests {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/animals/cpp');
+  $extractor->process($directories->_filter_files('t/samples/animals/cpp'));
   my $animals = $extractor->model;
   
   my @expected = qw(Animal Cat Dog Mammal main);
@@ -24,8 +26,9 @@ sub cpp_classes : Tests {
 }
 
 sub cpp_abstract_classes : Tests {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/animals/cpp');
+  $extractor->process($directories->_filter_files('t/samples/animals/cpp'));
   my $animals = $extractor->model;
 
   my @expected = qw(Animal);
@@ -34,8 +37,9 @@ sub cpp_abstract_classes : Tests {
 }
 
 sub c_modules : Tests {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/hello_world/c');
+  $extractor->process($directories->_filter_files('t/samples/hello_world/c'));
   my $hello_world = $extractor->model;
 
   my @expected = qw(hello_world main);
@@ -44,8 +48,9 @@ sub c_modules : Tests {
 }
 
 sub inheritance : Tests {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/animals/cpp');
+  $extractor->process($directories->_filter_files('t/samples/animals/cpp'));
   my $animals = $extractor->model;
 
   my @expected = qw(Animal);
@@ -61,12 +66,13 @@ sub inheritance : Tests {
 }
 
 sub current_file : Tests{
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/animals/cpp');
+  $extractor->process($directories->_filter_files('t/samples/animals/cpp'));
   my $animals = $extractor->model;
 
   $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/hello_world/c/hello_world.c');
+  $extractor->process($directories->_filter_files('t/samples/hello_world/c/hello_world.c'));
   my $hello_world = $extractor->model;
 
 	my $files = {
@@ -109,8 +115,9 @@ sub current_file : Tests{
 }
 
 sub cpp_methods : Test {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/animals/cpp');
+  $extractor->process($directories->_filter_files('t/samples/animals/cpp'));
   my $animals = $extractor->model;
 
   my @expected = qw(Animal::name);
@@ -119,8 +126,9 @@ sub cpp_methods : Test {
 }
 
 sub cpp_variables : Test {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/animals/cpp');
+  $extractor->process($directories->_filter_files('t/samples/animals/cpp'));
   my $animals = $extractor->model;
 
   my @expected = qw(Cat::_name);
@@ -129,8 +137,9 @@ sub cpp_variables : Test {
 }
 
 sub c_functions : Tests {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/hello_world/c');
+  $extractor->process($directories->_filter_files('t/samples/hello_world/c'));
   my $hello_world = $extractor->model;
 
   my @expected = qw(hello_world_destroy hello_world_new hello_world_say);
@@ -144,8 +153,9 @@ sub c_functions : Tests {
 }
 
 sub c_function_parameters : Tests {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/hello_world/c');
+  $extractor->process($directories->_filter_files('t/samples/hello_world/c'));
   my $hello_world = $extractor->model;
 
   my $expected = 1;
@@ -155,8 +165,9 @@ sub c_function_parameters : Tests {
 }
 
 sub cpp_function_parameters : Tests {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/parameter/');
+  $extractor->process($directories->_filter_files('t/samples/parameter/'));
   my $cpp_hello_world = $extractor->model;
 
   my $expected = 4;
@@ -165,8 +176,9 @@ sub cpp_function_parameters : Tests {
 }
 
 sub c_global_variables : Tests {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/hello_world/c');
+  $extractor->process($directories->_filter_files('t/samples/hello_world/c'));
   my $hello_world = $extractor->model;
 
   my @expected = qw(hello_world_id);
@@ -176,16 +188,17 @@ sub c_global_variables : Tests {
 
 
 sub conditional_paths : Tests {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/hello_world/c/hello_world.c');
+  $extractor->process($directories->_filter_files('t/samples/hello_world/c/hello_world.c'));
   my $hello_world = $extractor->model;
 
   $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/conditionals/c');
+  $extractor->process($directories->_filter_files('t/samples/conditionals/c'));
   my $conditionals_c = $extractor->model;
 
   $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/conditionals/cpp');
+  $extractor->process($directories->_filter_files('t/samples/conditionals/cpp'));
   my $conditionals_cpp = $extractor->model;
 
   my @expected = qw(1 1 1);
@@ -202,8 +215,9 @@ sub conditional_paths : Tests {
 }
 
 sub method_protection : Test {
+  my $directories = new Analizo::Batch::Job::Directories();
   my $extractor = Analizo::Extractor->load('Clang');
-  $extractor->process('t/samples/clang_parser/');
+  $extractor->process($directories->_filter_files('t/samples/clang_parser/'));
   my $clang = $extractor->model;
 
   my @expected = ("public") x 5;
