@@ -66,6 +66,13 @@ sub _visit_node($$$) {
 sub manager_cpp_files {
   my ($self,$node,$file,$name,$kind) = @_;
 
+  my @matches = ($node->USR() =~ m/^c:\@C@(\w+)$/mg);
+  if( @matches){
+    if (grep { $_ =~ /\.(cc|cxx|cpp)$/ } $file) {
+      $self->model->declare_module($node->spelling(),$file);
+    }
+  }
+
   if ($kind eq 'ClassDecl') {
     $self->current_module($name);
     $self->_get_files_module($name);
