@@ -5,6 +5,7 @@ use Test::More;
 use strict;
 use warnings;
 use File::Basename;
+use Analizo::Batch::Job::Directories;
 
 eval('$Analizo::Extractor::QUIET = 1;'); # the eval is to avoid Test::* complaining about possible typo
 
@@ -50,8 +51,9 @@ sub reading_from_many_inputs_files : Tests {
 
 sub reading_from_directory : Tests {
   my $extractor = new_sloccount_extractor();
+  my $directories = new Analizo::Batch::Job::Directories();
 
-  $extractor->process('t/samples/sample_basic');
+  $extractor->process($directories->_filter_files('t/samples/sample_basic'));
   is($extractor->model->total_eloc, 40, 'reading from an input directory');
 }
 
