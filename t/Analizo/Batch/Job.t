@@ -5,7 +5,7 @@ use base qw(t::Analizo::Test::Class);
 use Test::More;
 use Test::MockObject::Extends;
 use Test::MockModule;
-
+use Test::Exception;
 use t::Analizo::Test;
 
 use Analizo::Batch::Job;
@@ -199,27 +199,20 @@ sub tree_id : Tests {
 
 sub has_filters : Tests {
   my $job = new Analizo::Batch::Job;
-  can_ok($extractor, 'filters');
+  can_ok($job, 'filters');
   my $filters = $job->filters;
   is_deeply([], $filters);
   my $language = {};
-  $extractor->filters($language);
+  $job->filters($language);
   $filters = $job->filters;
   is($language, $filters->[0]);
 }
 
 sub must_consider_only__supported_languages : Tests {
   my $job = new Analizo::Batch::Job;
-  my @processed = ();
-  no warnings;
-  local *Analizo::Extractor::actually_process = sub {
-    my ($self, @options) = @_;
-    @processed = @options;
-  };
-  use warnings;
-
+  
   my $path = 't/samples/mixed';
-  $job->_filter_files($path);
+  my @processed = $job->_filter_files($path);
   @processed = sort @processed;
   my @expected = qw(
     t/samples/mixed/Backend.java
@@ -230,16 +223,10 @@ sub must_consider_only__supported_languages : Tests {
 }
 
 sub must_filter_input_with_language_filter : Tests {
-  my @processed = ();
-  no warnings;
-  local *Analizo::Extractor::actually_process = sub {
-    my ($self, @options) = @_;
-    @processed = @options;
-  };
+  my $job = new Analizo::Batch::Job;
 
-  my $extractor = new Analizo::Extractor;
-  $extractor->filters(new Analizo::LanguageFilter('java'));
-  $extractor->process('t/samples/mixed');
+  $job->filters(new Analizo::LanguageFilter('java'));
+  my @processed = $job->_filter_files("t/samples/mixed/");
 
   my @expected = ('t/samples/mixed/Backend.java', 't/samples/mixed/UI.java');
   @processed = sort(@processed);
@@ -247,76 +234,64 @@ sub must_filter_input_with_language_filter : Tests {
 }
 
 sub must_create_filters_for_excluded_dirs : Tests {
-  my $extractor = new Analizo::Extractor;
-  my $filters = $extractor->filters;
+  my $job = new Analizo::Batch::Job;
+  my $filters = $job->filters;
   is(scalar @$filters, 0);
 
   # addding the first excluded directory filter also adds a null language filter
-  $extractor->exclude('test');
-  $filters = $extractor->filters;
+  $job->exclude('test');
+  $filters = $job->filters;
   is(scalar @$filters, 2);
 
-  $extractor->exclude('uitest');
-  $filters = $extractor->filters;
+  $job->exclude('uitest');
+  $filters = $job->filters;
   is(scalar(@$filters), 3);
 }
 
 sub must_not_process_files_in_excluded_dirs : Tests {
-  my @processed = ();
-  no warnings;
-  local *Analizo::Extractor::actually_process = sub {
-    my ($self, @options) = @_;
-    @processed = sort(@options);
-  };
-  use warnings;
-
-  my $extractor = new Analizo::Extractor;
-  $extractor->exclude('t/samples/multidir/cpp/test');
-  $extractor->process('t/samples/multidir/cpp');
+  my $job = new Analizo::Batch::Job;
+  
+  my $path = 't/samples/multidir/cpp';
+  $job->exclude('t/samples/multidir/cpp/test/');
+  my @processed = $job->_filter_files($path);
+  #$job->exclude('t/samples/multidir/cpp/test/');
+  @processed = sort(@processed);
   is_deeply(\@processed, ['t/samples/multidir/cpp/hello.cc', 't/samples/multidir/cpp/src/hello.cc', 't/samples/multidir/cpp/src/hello.h']);
 }
 
 sub must_not_exclude_everything_in_the_case_of_unexisting_excluded_dir : Tests {
-  my @processed = ();
-  no warnings;
-  local *Analizo::Extractor::actually_process = sub {
-    my ($self, @options) = @_;
-    @processed = sort(@options);
-  };
-  use warnings;
-
-  my $extractor = new Analizo::Extractor;
-
+  
+  my $job = new Analizo::Batch::Job;
   ok(! -e 't/samples/animals/cpp/test');
-  $extractor->exclude('t/samples/animals/cpp/test');  # does not exist!
-  $extractor->process('t/samples/animals/cpp');
+  $job->exclude('t/samples/animals/cpp/test');  # does not exist!
+  my @processed = $job->_filter_files("t/samples/animals/cpp");
 
   isnt(0, scalar @processed);
 }
 
 sub must_not_ignore_filter_by_default : Tests {
   no warnings;
-  local *Analizo::Extractor::apply_filters = sub {
+  local *Analizo::Batch::Job::apply_filters = sub {
     die "apply_filters() was called"
   };
   use warnings;
 
-  my $extractor = Analizo::Extractor->new;
-  dies_ok { $extractor->process('t/samples/mixed') };
+  my $job = Analizo::Batch::Job->new;
+  dies_ok { $job->_filter_files('t/samples/mixed') };
 }
 
 sub force_ignore_filter : Tests {
   no warnings;
-  local *Analizo::Extractor::use_filters = sub {
+  local *Analizo::Batch::Job::use_filters = sub {
     0;
   };
-  local *Analizo::Extractor::apply_filters = sub {
+  local *Analizo::Batch::Job::apply_filters = sub {
     die "apply_filters() was called"
   };
   use warnings;
 
-  my $extractor = Analizo::Extractor->new;
-  lives_ok { $extractor->process('t/samples/mixed') };
+  my $job = Analizo::Batch::Job->new;
+  lives_ok { $job->_filter_files('t/samples/mixed') };
 }
 
 __PACKAGE__->runtests;
