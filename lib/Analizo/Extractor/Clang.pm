@@ -97,7 +97,7 @@ sub manager_cpp_files {
         my $access = $child->access_specifier;
 
         $self->{current_member} = $child;
-        $self->identify_conditional_path(); 
+        $self->identify_conditional_path();
         $self->model->declare_function($name, qualified_name($child));
         $self->model->add_protection(qualified_name($child),$access) if $access eq 'public';
       }
@@ -115,11 +115,7 @@ sub manager_cpp_files {
         $self->model->declare_function($name, $method);
         $self->model->add_protection($method,$access) if $access eq 'public';
         $self->identify_conditional_path();
-
-        if ($child->is_pure_virtual && !(grep {$self->current_module eq  $_ }($self->model->abstract_classes))) {
-          $self->model->add_abstract_class($self->current_module);
-        }
-
+        $self->identify_abstract_class();
         $self->model->add_parameters($function_name, $num_parameters);
       }
     );
@@ -137,7 +133,7 @@ sub manager_cpp_files {
 
   #when it is a cpp file but it is not a class, as the main.cpp file
   if ($kind eq 'FunctionDecl') {
-    my $module = $self->_get_basename($file); 
+    my $module = $self->_get_basename($file);
     my $access = $node->access_specifier;
     $access =  $access eq 'invalid' ? 'public': $access;
 
@@ -176,7 +172,7 @@ sub manager_c_files {
         $self->model->declare_function($module_name, qualified_name($child));
         $self->model->add_protection(qualified_name($child), $access);
 
-        $self->model->add_parameters($function_name, $num_parameters); 
+        $self->model->add_parameters($function_name, $num_parameters);
 	    }
     );
 
@@ -195,11 +191,20 @@ sub manager_c_files {
   }
 }
 
+sub identify_abstract_class() {
+  my $self = shift;
+  if ($self->current_member->is_pure_virtual &&
+      !(grep {$self->current_module eq  $_ }
+      ($self->model->abstract_classes))) {
+    $self->model->add_abstract_class($self->current_module);
+  }
+}
+
 sub identify_conditional_path {
   my($self) = @_;
   my $function_name = qualified_name($self->current_member);
   my $num_paths = $self->model->{conditional_paths}->{$function_name};
-  
+
   $num_paths = ($num_paths)?$num_paths+1:1;
   $self->model->add_conditional_paths($function_name, $num_paths);
 }
@@ -213,15 +218,15 @@ sub qualified_name {
     $final_name = $matches[1]."::".$matches[3];
   }
   else{
-    $final_name = $matches[1];  
+    $final_name = $matches[1];
   }
-  
+
   return $final_name;
 }
 
 sub _find_children_by_kind($$$) {
   my ($node, $kind, $callback) = @_;
-  
+
   for my $child (@{$node->children}) {
     if ($child->kind->spelling eq $kind) {
       &$callback($child);
@@ -232,14 +237,14 @@ sub _find_children_by_kind($$$) {
 sub _get_basename {
   my ($self, $file) = @_;
   my $filename = basename($file,('.c','.h','.cpp','.cc' ));
-  
+
   return $filename;
 }
 
 sub add_file {
   my ($self,$file) = @_;
   my $filename = $self->_get_basename($file);
-  
+
   $filename = lc($filename);
   $self->{files}->{$filename} ||=[];
   push(@{$self->{files}->{$filename}},$file);
@@ -254,10 +259,10 @@ sub _get_files_module {
   }
 
   $module_lc = lc($module);
-  
+
   if(exists($self->{files}->{$module_lc})){
     my @implementations = @{$self->{files}->{$module_lc}};
-    
+
     foreach my $impl (@implementations) {
        $self->model->declare_module($module, $impl);
     }
