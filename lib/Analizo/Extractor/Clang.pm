@@ -93,13 +93,16 @@ sub manager_cpp_files {
     _find_children_by_kind ($node, 'CXXConstructor',
       sub {
         my ($child) = @_;
-        my $method = $child->spelling;
         my $access = $child->access_specifier;
+        my $constructor = qualified_name($child);
+        my $num_parameters = $child->num_arguments();
 
         $self->{current_member} = $child;
-        $self->model->add_conditional_paths(qualified_name($child), 1);
-        $self->model->declare_function($name, qualified_name($child));
-        $self->model->add_protection(qualified_name($child),$access) if $access eq 'public';
+        $self->model->declare_function($name, $constructor);
+        $self->model->add_protection($constructor,$access) if $access eq 'public';
+        $self->identify_abstract_class();
+        $self->model->add_conditional_paths($constructor, 1);
+        $self->model->add_parameters($constructor, $num_parameters);
       }
     );
 
@@ -109,15 +112,13 @@ sub manager_cpp_files {
         my $access = $child->access_specifier;
         my $num_parameters = $child->num_arguments();
         my $method = qualified_name($child);
-        my $function_name = qualified_name($child);
 
         $self->{current_member} = $child;
         $self->model->declare_function($name, $method);
         $self->model->add_protection($method,$access) if $access eq 'public';
         $self->identify_abstract_class();
-        $self->model->add_conditional_paths($function_name, 1);
-
-        $self->model->add_parameters($function_name, $num_parameters);
+        $self->model->add_conditional_paths($method, 1);
+        $self->model->add_parameters($method, $num_parameters);
       }
     );
 
