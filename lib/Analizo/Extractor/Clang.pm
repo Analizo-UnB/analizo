@@ -41,7 +41,8 @@ sub _visit_node($$$) {
   my $name = $node->spelling;
   my $kind = $node->kind->spelling;
   my $children = $node->children;
-  my ($file, $line, $column) = $node->location();
+  my ($file, $line, $column, $line_end) = $node->location();
+
 
   # FIXME find other way of skipping nodes outside of the analyzed tree?
   if ($file =~ m/^\/usr/) {
@@ -94,8 +95,8 @@ sub manager_cpp_files {
       sub {
         my ($child) = @_;
         my $access = $child->access_specifier;
-        my $constructor = qualified_name($child);
         my $num_parameters = $child->num_arguments();
+        my $constructor = qualified_name($child);
 
         $self->{current_member} = $child;
         $self->model->declare_function($name, $constructor);
@@ -103,6 +104,7 @@ sub manager_cpp_files {
         $self->identify_abstract_class();
         $self->model->add_conditional_paths($constructor, 1);
         $self->model->add_parameters($constructor, $num_parameters);
+        $self->eloc();
       }
     );
 
@@ -119,6 +121,7 @@ sub manager_cpp_files {
         $self->identify_abstract_class();
         $self->model->add_conditional_paths($method, 1);
         $self->model->add_parameters($method, $num_parameters);
+        $self->eloc();
       }
     );
 
@@ -139,15 +142,17 @@ sub manager_cpp_files {
     my $access = $node->access_specifier;
     my $function_name = qualified_name($node);
     my $num_parameters = $node->num_arguments();
+
     $access =  $access eq 'invalid' ? 'public': $access;
 
     $self->current_module($module);
     $self->model->declare_function($module, $function_name);
-
+    $self->{current_member} = $node;
     $self->_get_files_module($module);
-    $self->model->add_protection(qualified_name($node), $access);
+    $self->model->add_protection($function_name, $access);
     $self->model->add_conditional_paths($function_name, 1);
     $self->model->add_parameters($function_name, $num_parameters); 
+    $self->eloc();
   }
 }
 
@@ -163,23 +168,22 @@ sub manager_c_files {
     _find_children_by_kind($node, 'FunctionDecl',
       sub {
         my ($child) = @_;
-        my $function = $child->spelling;
         my $access = $node->access_specifier;
-        my ($child_file) = $child->location;
         my $num_parameters = $child->num_arguments();
         my $function_name = qualified_name($child);
+        my ($child_file, $line, $column, $line_end) = $child->location();
 
         return if ($child_file ne $name);
 
         $self->{current_member} = $child;
-        # $self->identify_conditional_path();
         $self->model->add_conditional_paths($function_name, 1);
-
         $access =  $access eq 'invalid' ? 'public': $access;
-        $self->model->declare_function($module_name, qualified_name($child));
-        $self->model->add_protection(qualified_name($child), $access);
-
+        $self->model->declare_function($module_name, $function_name);
+        $self->model->add_protection($function_name, $access);
         $self->model->add_parameters($function_name, $num_parameters);
+        $self->eloc();
+        
+
 	    }
     );
 
@@ -195,6 +199,20 @@ sub manager_c_files {
         $self->{current_member} = $child;
       }
     );
+  }
+}
+
+
+#FIXME Not working with cpp files
+sub eloc(){ 
+  my ($self) = @_;
+  my $function_name = qualified_name($self->current_member);
+  my ($child_file, $line, $column, $line_end) = $self->current_member->location();
+  my $num_lines  = $line_end - $line;
+
+  my $localeloc = $self->model->{lines}->{$function_name};
+  if (not $localeloc){
+    $self->model->add_loc($function_name,$num_lines+1) ;
   }
 }
 
