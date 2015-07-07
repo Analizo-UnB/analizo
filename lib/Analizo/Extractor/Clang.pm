@@ -135,14 +135,14 @@ sub manager_cpp_files {
 
   #when it is a cpp file but it is not a class, as the main.cpp file
   if ($kind eq 'FunctionDecl') {
-    my $module = $self->_get_basename($file);
+    my $module = _get_basename($file);
     my $access = $node->access_specifier;
     my $function_name = qualified_name($node);
     my $num_parameters = $node->num_arguments();
     $access =  $access eq 'invalid' ? 'public': $access;
 
     $self->current_module($module);
-    $self->model->declare_function($module, $num_parameters);
+    $self->model->declare_function($module, $function_name);
 
     $self->_get_files_module($module);
     $self->model->add_protection(qualified_name($node), $access);
@@ -155,7 +155,7 @@ sub manager_c_files {
   my ($self,$node,$file,$name,$kind) = @_;
 
   if ($kind eq 'TranslationUnit') {
-    my $module_name = $self->_get_basename($name);
+    my $module_name = _get_basename($name);
 
     $self->current_module($module_name);
     $self->_get_files_module($module_name,1);
@@ -225,7 +225,9 @@ sub qualified_name {
     $final_name = $matches[1]."::".$matches[3];
   }
   else{
-    $final_name = $matches[1];
+    my ($module_name) = $node->location;
+    $module_name = _get_basename($module_name);
+    $final_name = "$module_name::$matches[1]";
   }
 
   return $final_name;
@@ -242,7 +244,7 @@ sub _find_children_by_kind($$$) {
 }
 
 sub _get_basename {
-  my ($self, $file) = @_;
+  my ($file) = @_;
   my $filename = basename($file,('.c','.h','.cpp','.cc' ));
 
   return $filename;
@@ -250,7 +252,7 @@ sub _get_basename {
 
 sub add_file {
   my ($self,$file) = @_;
-  my $filename = $self->_get_basename($file);
+  my $filename = _get_basename($file);
 
   $filename = lc($filename);
   $self->{files}->{$filename} ||=[];
@@ -262,7 +264,7 @@ sub _get_files_module {
   my $module_lc;
 
   if($is_c_code){
-    $module_lc = $self->_get_basename($module);
+    $module_lc = _get_basename($module);
   }
 
   $module_lc = lc($module);
