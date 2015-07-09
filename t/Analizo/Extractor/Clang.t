@@ -142,13 +142,13 @@ sub c_functions : Tests {
   $extractor->process($directories->_filter_files('t/samples/hello_world/c'));
   my $hello_world = $extractor->model;
 
-  my @expected = qw(hello_world_destroy hello_world_new hello_world_say);
+  my @expected = qw(hello_world::hello_world_destroy hello_world::hello_world_new hello_world::hello_world_say);
   my @got = sort(@{$hello_world->{modules}->{hello_world}->{functions}});
   is_deeply(\@got, \@expected, 'functions in hello_world module');
 
   my $main_functions = $hello_world->{modules}->{main}->{functions};
 
-  is_deeply($main_functions, ['main'], 'functions in main module');
+  is_deeply($main_functions, ['main::main'], 'functions in main module');
 
 }
 
@@ -159,7 +159,7 @@ sub c_function_parameters : Tests {
   my $hello_world = $extractor->model;
 
   my $expected = 1;
-  my $got = $hello_world->{parameters}->{'hello_world_say'};
+  my $got = $hello_world->{parameters}->{'hello_world::hello_world_say'};
 
   is($got, $expected,"parameters in hello_world_say");
 }
