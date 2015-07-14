@@ -242,14 +242,14 @@ sub _add_calls{
             my @functions_type = qw(FunctionDecl CXXConstructor CXXMethod);
             my @variables_type = qw (VarDecl FieldDecl);
             if(grep { $_ eq $referenced->kind->spelling } @functions_type ){
-                $self->model->add_call($function,$referenced->spelling);
+                $self->model->add_call($function,qualified_name($referenced));
             }
             if(grep { $_ eq $referenced->kind->spelling } @variables_type){
-                $self->model->add_variable_use($function,$referenced->spelling);
+                $self->model->add_variable_use($function,qualified_name($referenced));
             }
         }
       }
-    ,qw(CallExpr MemberRefExpr));
+    ,qw(CallExpr MemberRefExpr CXXThisExpr));
 }
 
 sub identify_conditional_path {

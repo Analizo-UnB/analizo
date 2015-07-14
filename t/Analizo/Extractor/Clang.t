@@ -141,9 +141,10 @@ sub cpp_calls : Test {
   $extractor->process($directories->_filter_files('t/samples/calls/cpp/main.cpp'));
   my $calls = $extractor->model;
 
-  my @expected = qw(main::plusTwo main::sum Person::getAge Person::old_id);
+  my @expected = qw(Person::Person main::plusTwo main::sum Person::getAge Person::old_id);
   my @got = keys  %{$calls->{calls}->{"main::main"}};
   @got = sort @got;
+  @expected = sort(@expected);
   is_deeply(\@got, \@expected);
 }
 
