@@ -105,8 +105,11 @@ sub manager_cpp_files {
         $self->model->add_conditional_paths($constructor, 1);
         $self->model->add_parameters($constructor, $num_parameters);
         $self->eloc();
+        $self->_add_calls($node,$constructor);
       }
     );
+
+    
 
     _find_children_by_kind ($node, 'CXXMethod',
       sub {
@@ -122,6 +125,7 @@ sub manager_cpp_files {
         $self->model->add_conditional_paths($method, 1);
         $self->model->add_parameters($method, $num_parameters);
         $self->eloc();
+        $self->_add_calls($node,$method);
       }
     );
 
@@ -153,6 +157,7 @@ sub manager_cpp_files {
     $self->model->add_conditional_paths($function_name, 1);
     $self->model->add_parameters($function_name, $num_parameters); 
     $self->eloc();
+    $self->_add_calls($node,$function_name);
   }
 }
 
@@ -182,8 +187,7 @@ sub manager_c_files {
         $self->model->add_protection($function_name, $access);
         $self->model->add_parameters($function_name, $num_parameters);
         $self->eloc();
-        
-
+        $self->_add_calls($node,$function_name);
 	    }
     );
 
@@ -225,6 +229,29 @@ sub identify_abstract_class() {
   }
 }
 
+sub _add_calls{
+    my($self,$node,$function) = @_;
+    #print $node->kind->spelling, " ", "Finding... for function", " ", $function, "\n"; 
+    _find_by_kind($node,
+      sub{
+        my ($child) = @_;
+        #print "Found\n";
+        my $referenced = $child->get_cursor_referenced();
+        #print $referenced->spelling, " ", $referenced->kind->spelling,"\n";
+        if(!$referenced->is_system_header){
+            my @functions_type = qw(FunctionDecl CXXConstructor CXXMethod);
+            my @variables_type = qw (VarDecl FieldDecl);
+            if(grep { $_ eq $referenced->kind->spelling } @functions_type ){
+                $self->model->add_call($function,$referenced->spelling);
+            }
+            if(grep { $_ eq $referenced->kind->spelling } @variables_type){
+                $self->model->add_variable_use($function,$referenced->spelling);
+            }
+        }
+      }
+    ,qw(CallExpr MemberRefExpr));
+}
+
 sub identify_conditional_path {
   my($self) = @_;
   my $function_name = qualified_name($self->current_member);
@@ -249,6 +276,17 @@ sub qualified_name {
   }
 
   return $final_name;
+}
+
+sub _find_by_kind($$$) {
+  my ($node, $callback,@kind) = @_;
+  
+  for my $child (@{$node->children}) {
+    if (grep {$_ eq $child->kind->spelling} @kind) {
+      &$callback($child);
+    }
+    _find_by_kind($child,$callback,@kind);
+  }
 }
 
 sub _find_children_by_kind($$$) {

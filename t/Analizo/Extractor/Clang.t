@@ -9,7 +9,17 @@ use Data::Dumper;
 use Analizo::Extractor::Clang;
 use Analizo::Batch::Job::Directories;
 
-# print(Dumper($animals)); # FIXME remove this
+my $directories = new Analizo::Batch::Job::Directories();
+my $extractor = Analizo::Extractor->load('Doxyparse');
+$extractor->process($directories->_filter_files('t/samples/calls/cpp/'));
+my $callsDoxyParse = $extractor->model;
+print(Dumper($callsDoxyParse)); # FIXME remove this
+
+my $directories = new Analizo::Batch::Job::Directories();
+my $extractor = Analizo::Extractor->load('Clang');
+$extractor->process($directories->_filter_files('t/samples/calls/cpp/'));
+my $calls = $extractor->model;
+print(Dumper($calls)); # FIXME remove this
 # print(Dumper($hello_world)); # FIXME remove this
 # print(Dumper($doxyparsemodel)); # FIXME remove this
 
@@ -123,6 +133,18 @@ sub cpp_methods : Test {
   my @expected = qw(Animal::name);
   my $got = $animals->{modules}->{Animal}->{functions};
   is_deeply($got, \@expected);
+}
+
+sub cpp_calls : Test {
+  my $directories = new Analizo::Batch::Job::Directories();
+  my $extractor = Analizo::Extractor->load('Clang');
+  $extractor->process($directories->_filter_files('t/samples/calls/cpp/main.cpp'));
+  my $calls = $extractor->model;
+
+  my @expected = qw(main::plusTwo main::sum Person::getAge Person::old_id);
+  my @got = keys  %{$calls->{calls}->{"main::main"}};
+  @got = sort @got;
+  is_deeply(\@got, \@expected);
 }
 
 sub cpp_variables : Test {
