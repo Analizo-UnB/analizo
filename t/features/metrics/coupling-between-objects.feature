@@ -12,6 +12,7 @@ Feature: coupling between objects
       | c        | main   |
       | cpp      | main   |
       | java     | Main   |
+      | python   | Main   |
 
   Scenario: "Animals" project
     Given I am in t/samples/animals/<language>

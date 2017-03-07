@@ -5,10 +5,11 @@ Feature: metrics batch
 
   Scenario: "hello, world"
     Given I am in t/samples/hello_world/
-  	When I run "analizo metrics-batch"
-  	Then the output must match "I: Processed c."
-  	And the output must match "I: Processed cpp."
-  	And the output must match "I: Processed java."
+    When I run "analizo metrics-batch"
+    Then the output must match "I: Processed c."
+    And the output must match "I: Processed cpp."
+    And the output must match "I: Processed java."
+    And the output must match "I: Processed python."
   
   Scenario: summarizing
     Given I am in t/samples/hello_world/
@@ -18,6 +19,7 @@ Feature: metrics batch
     And the output must match "c,"
     And the output must match "cpp,"
     And the output must match "java,"
+    And the output must match "python,"
     And the output must not match "I: Processed"
 
   Scenario: support for parallel processing

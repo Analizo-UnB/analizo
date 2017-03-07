@@ -11,6 +11,7 @@ Feature: change cost degree
       | language |
       | cpp      |
       | java     |
+      | python   |
 
   Scenario: "Animals" project
     Given I am in t/samples/animals/<language>
